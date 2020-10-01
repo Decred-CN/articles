@@ -1,7 +1,13 @@
-# Meet The Disruptors: How Jake Yocom-Piatt of Decred Aims To Redefine Governance, With Blockchain Technology
+## 洞见未来: Decred如何利用区块链技术重构治理体系
  
- <p align =“center”>
-  ![abstract art](img/jyp.jpeg)
-</ p>
-
 ![abstract art](img/jyp.jpeg)
+
+我所处的Decred项目正在使用区块链技术重新定义治理。在许多国家，政府和公司管理层都是由选举产生的人构成，他们的激励措施与选民的激励措施只有微弱的一致性。
+
+Decred无需这样的选举，而是使用选票来做出政策决定，因此不需要专门的决策者和相应的个人主权授权。
+
+Decred致力于创建一个由稳健货币驱动的更公平的金融系统，在该系统中社区整体将进行决策，每个决策者都将参与其中。
+
+# 作为我们系列报道的一部分，我有幸采访了Jake Yocom-Piatt，他们正在改变的他们所处的领域。
+
+
