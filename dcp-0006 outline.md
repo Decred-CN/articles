@@ -56,6 +56,6 @@ Decred国库的支出一直以来是由人工执行和控制。当前的支付�
 
 该代码已获得ISC的许可。
 
-### 注意
+## 注意
 
 本文只是dcp0006的缩减版，保留关键信息和概述等，阅读英文原版请点击[这里](https://github.com/marcopeereboom/dcps/blob/dcp-0006/dcp-0006/dcp-0006.mediawiki)。
