@@ -40,7 +40,7 @@ Decred国库的支出一直以来是由人工执行和控制。当前的支付�
 
 * [Dave Collins](https://github.com/davecgh)
 * [Donald Adu-Poku](https://github.com/dnldd)
-* Jake Yocom-Piatt
+* [Jake Yocom-Piatt](https://github.com/behindtext)
 * [Jamie Holdstock](https://github.com/jholdstock)
 * [Joe Gruffins](https://github.com/JoeGruffins)
 * [Josh Rickmar](https://github.com/jrick)
