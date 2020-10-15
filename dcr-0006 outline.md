@@ -8,7 +8,7 @@ DCP: 0006
 许可代码: ISC
 </pre>
 
-# 本文只是dcp0006的缩减版，保留关键信息和概述等，阅读英文原版请点击[这里](https://github.com/marcopeereboom/dcps/blob/dcp-0006/dcp-0006/dcp-0006.mediawiki)。
+### 本文只是dcp0006的缩减版，保留关键信息和概述等，阅读英文原版请点击[这里](https://github.com/marcopeereboom/dcps/blob/dcp-0006/dcp-0006/dcp-0006.mediawiki)。
 
 ## 概要
 
