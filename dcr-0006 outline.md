@@ -32,19 +32,19 @@ Decred国库的支出一直以来是由人工执行和控制。当前的支付�
 
 ## 致谢
 
-感谢Dave Collins([[https://github.com/davecgh|@davecgh]])和Matheus Degiovani([[https://github.com/matheusd|@matheusd]])就许多设计细节进行了有益的讨论。
+感谢Dave Collins([@davecgh](https://github.com/davecgh))和Matheus Degiovani([@matheusd](https://github.com/matheusd))就许多设计细节进行了有益的讨论。
 
 ## 贡献者
 
 感谢以下贡献者，在本提案的审核过程中（字母顺序）提供了宝贵的反馈意见：
 
-* Dave Collins ([[https://github.com/davecgh|@davecgh]])
-* Donald Adu-Poku ([[https://github.com/dnldd|@dnldd]])
+* [Dave Collins](https://github.com/davecgh)
+* [Donald Adu-Poku](https://github.com/dnldd)
 * Jake Yocom-Piatt
-* Jamie Holdstock ([[https://github.com/jholdstock|@jholdstock]])
-* Joe Gruffins ([[https://github.com/JoeGruffins|@JoeGruffins]])
-* Josh Rickmar ([[https://github.com/jrick|@jrick]])
-* Matheus Degiovani ([[https://github.com/matheusd|@matheusd]])
+* [Jamie Holdstock](https://github.com/jholdstock)
+* [Joe Gruffins](https://github.com/JoeGruffins)
+* [Josh Rickmar](https://github.com/jrick)
+* [Matheus Degiovani](https://github.com/matheusd)
 
 ## 参考文献
 
