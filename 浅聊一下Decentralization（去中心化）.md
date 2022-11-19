@@ -28,6 +28,8 @@ Decred Treasury最近完成了首笔由选票控制的对网络贡献者的支�
 
 作为一个crypto爱好者，在crypto space呆了这么多年，只有decred会让我持续感到兴奋，因为它始终走在权力下放的最前沿并践行着。
 
+![decred架构](img/decred架构.jpeg)
+
 
 
 
