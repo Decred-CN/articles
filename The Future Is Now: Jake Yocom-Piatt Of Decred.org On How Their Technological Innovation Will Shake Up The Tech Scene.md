@@ -64,19 +64,17 @@ Bison Relay 是 20 年系统管理员以及其中 10 年在加密货币领域工
 
 * ASIC 挖矿的中心化程度令人难以置信——有一种说法称加密货币 ASIC 挖矿是去中心化的。它非常中心化，启用它会面临恶意矿工操纵项目市场的风险。
 
-* 立即避开可交付成果较弱的人——如果某人的可交付成果明显较弱，那么他们改进的可能性就很小。最好是减少损失并结束工作关系。
+* 立即避开可交付成果较弱的人或团队——如果可交付成果明显较弱，那么他们改进的可能性就很小。最好是减少损失并结束工作关系。
 
-* 减少雇用人员——人们强烈倾向于拥有大量员工，因为许多人认为这是成功的标志。通过反复试验，我了解到少即是多，特别是对于一个由高技能开发人员组成的小团队来说。
+* 减少雇用人员 - 人们强烈倾向于拥有大量员工，因为许多人认为这是成功的标志。通过反复试验，我了解到少即是多，特别是对于一个由高技能开发人员组成的小团队来说。
 
-* 忽略短时热点——虽然加密货币领域的许多人追逐每一个最新趋势，例如 ICO、DeFi 或 NFT，但这些热点导致了激励模式的破坏，并且不可持续。
+* 忽略短时热点 - 虽然加密货币领域的许多人追逐每一个最新趋势，例如 ICO、DeFi 或 NFT，但这些热点导致了激励模式的破坏，并且不可持续。
 
-* 不要尝试让菜鸟开发人员加入——加密货币领域假设人们对编码、网络和密码学有一定程度的理解。熟练的开发人员从加入“绿色”开发人员中获益甚少，而且我发现这样做的机会成本高得令人无法接受。
+* 不要尝试让菜鸟开发人员加入 - 加密货币领域假设人们对编码、网络和密码学有一定程度的理解。我发现这样做的机会成本高得令人无法接受。
 
 ### 你是一个有很大影响力的人。如果你能发起一场运动，为大多数人带来最大的好处，那会是什么？你永远不知道你的想法会触发什么。:-)
 
-人类社会的大部分依赖于受信任的第三方，但主权网络设计了大部分受信任的第三方。我希望看到一个没有可信赖的第三方对公众拥有相当大控制权的世界，这是一场主权网络革命。有了现代电信，不再需要选举官员，每个重大群体决策都可以由公众通过加密投票做出，就像我们自 2017 年以来对 Decred 所做的那样。
-
-革命不会是集中的。
+人类社会的大部分依赖于受信任的第三方。我希望看到一个没有可信赖的第三方对公众拥有相当大控制权的世界，这是一场主权网络革命。有了现代电信，不再需要选举官员，每个重大群体决策都可以由公众通过加密投票做出，就像我们自 2017 年以来对 Decred 所做的那样。
 
 ### 您能给我们您最喜欢的“人生教训名言”吗？您能分享一下这与您的生活有什么关系吗？
 
@@ -84,7 +82,7 @@ Bison Relay 是 20 年系统管理员以及其中 10 年在加密货币领域工
 
 为了在许多情况下取得进展，人们必须首先“归零”并重新评估他们的假设。不要单调增加复杂性并尝试在现有技术的基础上进行构建，而是重新评估您的假设并构建新的东西。比特币使用 80 年代的密码学，通过以新颖的方式组合这些工具，实现了令人难以置信的目标，而忽略了当时的现代金融技术。同样，Decred 使用经典的加密原语构建了一个根据利益相关者的意愿发展的网络，该网络是自筹资金的，并且具有内置的隐私工具。Bison Relay 使用这些相同的工具来创建一个高度抵抗监视和审查的主权互联网，并紧密集成了小额支付基础设施。
 
-### 一些非常知名的风险投资家阅读了本专栏。如果你有 60 秒的时间向 VC 推销，你会说什么？如果我们标记他们，他或她可能会看到这个:-)
+### 一些非常知名的风险投资家会阅读本专栏。如果你有 60 秒的时间向 VC 推销，你会说什么？如果我们标记他们，他或她可能会看到这个:-)
 
 主权网络是未来，Decred 是最先进的公共主权网络。随着 Bison Relay 最近的发布，Decred 实际上是一个主权货币互联网，而不仅仅是一个营销模因。Decred 是货币进化而来的，拥有主权利益相关者，拥有强大的隐私工具，并且是自筹资金的。成为一个真正的主权个体，并将您的网络与我们的网络合并。
 
@@ -93,6 +91,15 @@ Bison Relay 是 20 年系统管理员以及其中 10 年在加密货币领域工
 您可以通过 Bison Relay 与我联系。我还在 Twitter 上@behindtext，Decred 是@decredproject。
 
 非常感谢您加入我们。这非常鼓舞人心。
+
+## 关于作者
+
+编译 ：[@Dominic](https://twitter.com/wanbihou)
+
+欢迎反馈至[Github](https://github.com/DominicTing)https://github.com/DominicTing)或联系作者
+
+原文链接：[原文](https://medium.com/authority-magazine/the-future-is-now-jake-yocom-piatt-on-how-their-technological-innovation-will-shake-u-3966dc1adc22#id_token=eyJhbGciOiJSUzI1NiIsImtpZCI6Ijk5YmNiMDY5MzQwYTNmMTQ3NDYyNzk0ZGZlZmE3NWU3OTk2MTM2MzQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYmYiOjE2ODc1MDA5ODMsImF1ZCI6IjIxNjI5NjAzNTgzNC1rMWs2cWUwNjBzMnRwMmEyamFtNGxqZGNtczAwc3R0Zy5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExNTY5OTIyNTgyMTIxNjExMTczNSIsImVtYWlsIjoiMTg1NjI1NTEzODNkdEBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXpwIjoiMjE2Mjk2MDM1ODM0LWsxazZxZTA2MHMydHAyYTJqYW00bGpkY21zMDBzdHRnLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwibmFtZSI6IkRvbWluaWMgdGluZyIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQWNIVHRkTGk2QlNOcHppMnMzTVROSk5zRlMwNk9kOHJZLTJ3c0s5UnlYbT1zOTYtYyIsImdpdmVuX25hbWUiOiJEb21pbmljIiwiZmFtaWx5X25hbWUiOiJ0aW5nIiwiaWF0IjoxNjg3NTAxMjgzLCJleHAiOjE2ODc1MDQ4ODMsImp0aSI6ImIyNTlhM2NiNzQ3YWZiYzU5NzhmZTI1YzljMjUwZmVlMjIzNjJiZDMifQ.XotAnz_gFbnl_MNsJyr8G67wAFr3AgKqhMh_UhYHZI3vKwJ08FWVYWbW49tExsRf0ThqY8OqLYiyvLTr-QpEau56ogETll9WFg0Li62cSGJA6Mx_oDSPbwfS56MNb12-_HUlON3WCUVb-TaYhm3aLLX0D2UaaK_zye1NeAEyaQAJ3vzNgH2PS0JqMvYkjYJjRHlEJbA1Y-PnO3924GDGz395Jk-42iv2Octyi7IuRqVoo7duWLVST0YQkIAwmZchSiL4fNuTN5UlWTACo83LmSgYu1H3FAWsY6VPM1mMxGzbwgpIdhesDnJqiz9pdi29YdkNNTdq5ONsAcEfRRQDQg)
+
 
 
 
