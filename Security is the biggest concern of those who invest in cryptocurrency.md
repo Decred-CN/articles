@@ -71,4 +71,13 @@ Decred 利用工作量证明 (PoW) 和权益证明 (PoS) 的混合共识，提�
 在安全方面，您认为项目下一步应该采取哪些步骤？请在下面发表评论！
 
 
+## 关于作者
+
+编译 ：[@Dominic](https://twitter.com/wanbihou)
+
+欢迎反馈至[Github](https://github.com/DominicTing)或联系作者
+
+原文链接：[原文](https://www.decredmagazine.com/security-is-the-biggest-concern-of-those-who-invest-in-cryptocurrency/)
+
+
 
