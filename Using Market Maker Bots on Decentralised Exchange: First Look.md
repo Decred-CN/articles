@@ -111,22 +111,11 @@ DCRDEX 是完全点对点的，不包含交易费用和中间商，但需要考�
 
 最后，转到打开的终端并在活动行上按 Ctrl + C 以停止 dexc 运行。一旦代码确认软件已停止，就可以安全地关闭终端了。
 
-## 关于作者
+## 关于译者
 
 编译 ：[@Dominic](https://twitter.com/wanbihou)
 
 欢迎反馈至[Github](https://github.com/DominicTing)或联系作者
 
 原文链接：[原文](https://www.cypherpunktimes.com/using-market-maker-bots-on-decentralised-exchange-first-look/)
-
-
-
-
-
-
-
-
-
-
-
 
