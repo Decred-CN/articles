@@ -110,37 +110,89 @@ network={
 ![image](https://github.com/DominicTing/articles/blob/master/img/How-To_DCRDEX_on_Raspberry_Pi_with%20_Umbrel/umbrelos.webp)
 _通过命令行界面安装 Umbrel OS_
 
+SD 卡的准备工作现已完成。现在，您可以将 SD 卡插入 Raspberry Pi 并启动它。
+
+之后我们必须登录命令行。为此，我们需要 Raspberry Pi 的本地 IP 地址。您也许可以在路由器的用户界面中找到这一点。以下命令将帮助您识别 Raspberry Pi 的 IP 地址。
+
+要在 Windows、MacOS 或 Linux 上查找 Raspberry 的 IP 地址，请尝试：
+
+`arp -a`
+
+现在我们需要连接到 Raspberry Pi 的 SSH 控制台来运行命令来安装Umbrel — 用于自托管的终极家庭服务器和操作系统。使用正确的 IP 和用户名。
+
+```
+ssh username@192.168.1.XXX
+curl -L https://umbrel.sh | bash
+```
+
+如果您想将 Umbrel 安装存储在外部硬盘驱动器上，您必须通过在 /etc/fstab 中为其提供一个条目来确保该磁盘在启动时自动安装到您的系统中。现在，您可以为安装脚本提供一个参数，以通过以下方式使用该安装点作为安装路径：
+
+`curl -L umbrel.sh | bash --install-path /mnt/usb/`
+
+Umbrel 的安装是全自动的。安装完成后我们可以重启树莓派。
+
+`sudo reboot -n`
+
+现在我们第一次通过网络浏览器访问Raspberry Pi的IP来检查Umbrel是否正确安装。第一次访问时，系统会要求您为 Umbrel 安装创建一个用户。
 
 
+## 步骤 3：通过 SSH 控制台安装 DCRDEX
+
+![image](https://github.com/DominicTing/articles/blob/master/img/How-To_DCRDEX_on_Raspberry_Pi_with%20_Umbrel/dcrdex.webp)
+_DCRDEX 由 Decred 的 Umbrel 应用商店提供支持，并具有自动更新功能_
+
+要使用 Decred 的 Umbrel 应用商店 ( GitHub - decred/umbrel-app-store )，我们将通过 SSH 控制台登录并执行以下命令来安装 DCRDEX。
+
+```
+ssh username@192.168.1.XXX
+sudo ~/umbrel/scripts/repo add https://github.com/decred/umbrel-app-store
+sudo ~/umbrel/scripts/repo update
+sudo ~/umbrel/scripts app install decred-dcrdex
+```
+
+DCRDEX 的安装现已完成。您现在可以使用网络浏览器登录 Umbrel，并且 DCRDEX 现在可以在您安装的应用程序中使用。
+
+**第一次使用DCRDEX**
+
+首次启动 DCRDEX 时，系统会提示您输入 Dex 的应用程序密码。
+
+**诚信保证金**
+
+之后您可以选择 Decred Dex 服务器。现在，您将被要求选择一种货币，用于为您在服务器上的帐户存入保证金。该保证金目前以 BTC 或 DCR 支付。
+
+必须存入诚信保证金以防止用户的不正确行为。它可以防止订单簿垃圾交易或结算期间故意取消已执行的交易。如果不公平行为持续受到处罚，您将失去保证金。
+
+该保证金将被锁定一段时间。此后，如果您决定停止使用该帐户，存入的保证金将可以取回。
+
+当您选择了要存入保证金的货币后，将为您创建相应的钱包。这包括相应区块链的同步以及存款到您的钱包所需的确认。
+
+根据您的互联网连接速度，同步可能需要更多时间。您可以在屏幕上跟踪状态。99.9% 状态后，将在您的计算机上扫描下载的区块链以查找现有硬币和交易。根据系统的速度，这可能需要一段时间，请耐心等待。
+
+在您接受支付保证金后，您的账户就可以进行交易了。
+
+**备份您的应用程序种子**
+
+成功设置帐户后，您应该创建应用程序种子的备份。
+
+在右上角菜单中，转到“设置”，然后单击“**查看应用程序种子**”
+
+有了这个种子，您可以在稍后的新安装中再次访问不同钱包中的所有硬币。将此种子保存在安全的地方，将其打印出来，不要将其保存在您的计算机或智能手机上。
+
+**集成原生多币种钱包**
+
+对于您想要交易的每种货币，您必须首先创建一个钱包。各个区块链的同步总是需要一些时间。
+
+以下货币受到支持并具有完全集成的钱包：BTC、DCR、LTC、BCH
+
+以下币种要么不支持 SPV 轻量级区块过滤器，要么目前仅通过 RPC 或第 3 方 API 提供商通过外部全节点进行集成：
+
+Doge、ZEC、ETH、USDC(ETH)、DGB
 
 
+## 关于译者
 
+编译 ：[@Dominic](https://twitter.com/wanbihou)
 
+欢迎反馈至[Github](https://github.com/DominicTing)或联系作者
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+原文链接：[原文](https://www.cypherpunktimes.com/how-to-dcrdex-on-raspberry-pi-with-umbrel/)
