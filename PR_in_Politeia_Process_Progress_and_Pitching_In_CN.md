@@ -4,7 +4,6 @@
 ![Photo by [SpaceX](https://unsplash.com/@spacex?utm_source=medium&utm_medium=referral) on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)](/img/PR_in_Politeia_Process_Progress_and_Pitching_In_CN/Img1.png)
 *[SpaceX](https://unsplash.com/@spacex?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral) 的照片*
 
-(/img/PR_in_Politeia_Process_Progress_and_Pitching_In_CN/Img1.png)
 
 10月Decred达成了又一个里程碑：Decred的政策和预算提案系统Politeia上线啦。在第一个星期里，六个Decred提案被提出，引来了社区群体的积极辩论和投票。投票参与率超过了50％，这比我们在美国中期选举中看到的更高。在第一轮提案中，Decred社区绝大多数通过了一项[开放式研究项目](https://proposals.decred.org/proposals/c68bb790ba0843980bb9695de4628995e75e0d1f36c992951db49eca7b3b4bcd)，该项目将让原本不太可能找到资金的领域得到时间投入，以及一项关于[选票投票的术语变更提案](https://proposals.decred.org/proposals/522652954ea7998f3fca95b9c4ca8907820eb785877dcf7fba92307131818c75)。
 
