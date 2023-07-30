@@ -14,6 +14,22 @@
 下面我将指导您完成完整的安装，从在 SD 卡上设置 Raspberry Pi 操作系统到安装 Umbrel 并集成 DCRDEX。
 
 
+## 准备
+
+* 树莓派4
+* 存储驱动器
+* 驱动器外壳
+* 16GB+ 微型 SD 卡
+* 电源
+* 以太网线
+
+
+## 第1步：下载Raspberry Pi操作系统并安装在SD卡上
+
+![image](https://github.com/DominicTing/articles/blob/master/img/How-To_DCRDEX_on_Raspberry_Pi_with%20_Umbrel/raspios.webp)
+
+
+
 
 
 
