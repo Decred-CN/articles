@@ -2,7 +2,7 @@
 
 ![image](https://github.com/DominicTing/articles/blob/master/img/Using_Market_Maker_Bots_on_Decentralised_Exchange_First_Look/Using%20Market%20Maker%20Bots.jpg)
 
-作者：Phoenix Green
+_作者：Phoenix Green_
 
 > 抢先了解未来的 DCRDEX 功能。做市商机器人正处于初级开发阶段，请谨慎使用。
 
@@ -21,7 +21,7 @@
 入门的障碍是您需要有少量 DCR 或 BTC 来支付保证金。希望在不久的将来，莱特币用户将能够使用 LTC 进行支付。
 
 ![image](https://github.com/DominicTing/articles/blob/master/img/Using_Market_Maker_Bots_on_Decentralised_Exchange_First_Look/DCRDEX-Overview.jpg)
-DCRDEX 活跃交易
+_DCRDEX 活跃交易_
 
 
 ## 设置静态订单
