@@ -75,8 +75,7 @@ Decred 自推出以来使用的算法基于指数移动平均线 (EMA)，并且�
 
 此外，除了 [[#proof-of-work-enforcement|PoW 执行]]部分中明确详细说明的修改之外，所有涉及区块哈希的共识规则都必须保留。
 
-
-The serialized data for both hashes is as follows:
+两个哈希值的序列化数据如下：
 
 <img src="block_header_serialization.svg" width="100%" height="341" />
 
