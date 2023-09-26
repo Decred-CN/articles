@@ -41,78 +41,40 @@ DCP: 0011
 
 当前所需的目标难度是基于上述专用硬件的存在，因此在新的哈希算法下对于非专用硬件来说明显太难了。因此，在转向新的哈希算法时，所需的目标难度也需要重置为低得多的初始值。
 
-===Difficulty Adjustment Algorithm===
+===难度调整算法===
 
-An important aspect of PoW is maintaining the target average block time as the
-amount of mining hash power varies.  This is accomplished by dynamically varying
-the required difficulty by means of a difficulty adjustment algorithm (DAA).
+PoW 的一个重要方面是随着挖矿算力的变化保持目标平均区块时间。这是通过难度调整算法 (DAA) 动态改变所需难度来实现的。
 
-The algorithm that Decred has used since launch is based on an exponential
-moving average (EMA) and does a fairly good job of maintaining the target block
-time.  Concretely, in over 7 years of operation as of the time of this writing,
-the average block time for the main network is the expected average time of 5
-minutes and the network is only about 8.5 hours behind the perfectly ideal
-schedule.
+Decred 自推出以来使用的算法基于指数移动平均线 (EMA)，并且在维持目标区块时间方面做得相当好。具体而言，在截至撰写本文时超过 7 年的运行中，主网的平均出块时间为预期的平均时间 5 分钟，而网络仅比完美的理想计划晚了约 8.5 小时。
 
-Nevertheless, the DAA prior to this proposal only updates the target difficulty
-every so often (144 blocks on the main network) and thus is marginally
-susceptible to some undesirable behavior when the network is predominantly mined
-by GPUs as opposed to ASICs.
+然而，在此提案之前的 DAA 仅每隔一段时间更新一次目标难度（主网络上的 144 个区块），因此当网络主要由 GPU（而不是 ASIC）挖矿时，它会稍微容易受到一些不良行为的影响。
 
-One of the most notable cases is related to "hit and run" mining.  In short, it
-involves miners taking advantage of weaknesses in the various DAAs implemented
-by different blockchains by constantly switching the hash power between the
-affected blockchains in order to achieve higher profitability than steady mining
-would provide.  Since it is often effective, a lot of popular modern mining
-software automatically attempts to take advantage of this technique in order to
-maximize profitability.  This behavior, in turn, can lead to extremely large
-swings in the hash power of the affected blockchains.
+最现实的案例之一与“肇事逃逸”挖矿有关。简而言之，它涉及矿工利用不同区块链实施的各种 DAA 的弱点，通过不断地在受影响的区块链之间切换算力，以获得比稳定挖矿更高的盈利能力。由于它通常很有效，因此许多流行的现代挖矿软件会自动尝试利用该技术来最大化盈利能力。反过来，这种行为可能会导致受影响区块链的哈希算力出现极大的波动。（类似于机枪池）
 
-The aforementioned behavior is not desirable as it can lead to consequences that
-are harmful to the overall network such as:
+该行为可能导致对整个网络造成有害的后果，例如：
 
-* Extended transaction confirmation times
-* Reduced profitability for the remaining steady miners who are keeping the network running
-* A snowball effect whereby remaining steady miners are either forced to follow suit or stop mining altogether further exacerbating the situation
+* 延长交易确认时间
+* 维持网络运行的其余稳定矿工的盈利能力下降
+* 雪球效应使剩下的稳定矿工要么被迫效仿，要么完全停止挖矿，进一步加剧了情况
 
-The proposed ASERT DAA hardens the network further against such undesirable
-behaviors by improving the responsiveness and avoiding some other minor edge
-conditions such as error accumulation and clipping that miners might try to use
-to gain an unfair advantage.  The proposed algorithm also has the benefits of
-being simpler to implement and more efficient to calculate than the EMA DAA.
+提案中的 ASERT DAA 通过提高响应能力并避免其他一些次要边缘条件（例如矿工可能试图利用错误累积和削波来获得不公平优势）来进一步强化网络，以防止此类不良行为。与 EMA DAA 相比，该算法还具有实现更简单、计算更高效的优点。
 
-Finally, it is worth noting that Decred's EMA DAA is an approximation of the
-relative version of the proposed ASERT algorithm.  In other words, the proposed
-algorithm is a slightly improved version of the algorithm with a proven track
-record that it replaces.
+最后，值得注意的是，Decred 的 EMA DAA 是 ASERT 算法的相对版本的近似。换句话说，该算法是具有经过验证的微改进版本。
 
-==Specification==
+==规格==
 
-===Integer Math===
+===整数数学===
 
-In order to facilitate better compatibility across implementations and
-languages, the various formulas defined by this specification make use of
-integer math instead of floating point math as denoted by the use of the
-truncated integer part (Int) and
-floor<ref>[[https://en.wikipedia.org/wiki/Floor_and_ceiling_functions|Wikipedia: Floor and ceiling functions]]</ref>
-functions.  This is highly desirable for consensus code since floating point
-math can be problematic across languages due to issues such as rounding errors
-and uncertainty in their respective libraries.
+为了促进跨实现和语言的更好兼容性，本规范定义的各种公式使用整数数学而不是浮点数学，如使用截断整数部分 (Int) 和下限<ref>[[https://en.wikipedia.org/wiki/Floor_and_ceiling_functions|Wikipedia: Floor and ceiling functions]]</ref>函数所示 。这对于共识代码来说是非常理想的，因为由于舍入错误和各自库中的不确定性等问题，浮点数学可能会在不同语言之间出现问题。
 
-===Proof of Work Hash===
+===工作量证明哈希===
 
-As of this specification, a new PoW hash that is distinct from the block hash
-MUST be introduced and the block hash MUST remain the same as it is prior to
-this specification.  That is, the block hash MUST continue to commit to all
-fields of the block header with <code>BLAKE-256</code> using 14 rounds.
+从本规范开始，必须引入与区块哈希不同的新 PoW 哈希，并且区块哈希必须保持与本规范之前的相同。也就是说，区块哈希必须使用<code>BLAKE-256 r14</code>继续提交到区块头字段。
 
-The new PoW hash MUST also commit to all fields of the block header with
-<code>BLAKE3</code> by using the exact same serialization of the block header
-data as the block hash.
+新的 PoW 哈希还必须使用与<code>BLAKE3</code>区块哈希完全相同的区块头数据序列化来提交区块头的所有字段。
 
-Additionally, all consensus rules that involve the block hash, with the
-exception of the modifications explicitly detailed in the
-[[#proof-of-work-enforcement|PoW Enforcement]] section, MUST be retained.
+此外，除了 [[#proof-of-work-enforcement|PoW 执行]]部分中明确详细说明的修改之外，所有涉及区块哈希的共识规则都必须保留。
+
 
 The serialized data for both hashes is as follows:
 
