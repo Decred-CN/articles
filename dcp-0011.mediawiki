@@ -37,13 +37,9 @@ DCP: 0011
 
 鉴于此，使用不同的哈希替区块哈希来强加 PoW 要求，允许独立更改哈希算法，而不会影响依赖<code>BLAKE-256 r14</code>生成的区块哈希的任何其它功能。
 
-===重置网络难度===
+===重置网络目标难度===
 
-The current required target difficulty is based on the existence of the
-aforementioned specialized hardware and would therefore be significantly too
-difficult for non-specialized hardware under the new hashing algorithm.  Thus,
-the required target difficulty also needs to be reset to a much lower initial
-value when moving to the new hashing algorithm.
+当前所需的目标难度是基于上述专用硬件的存在，因此在新的哈希算法下对于非专用硬件来说明显太难了。因此，在转向新的哈希算法时，所需的目标难度也需要重置为低得多的初始值。
 
 ===Difficulty Adjustment Algorithm===
 
