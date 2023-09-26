@@ -77,10 +77,10 @@ Decred 自推出以来使用的算法基于指数移动平均线 (EMA)，并且�
 
 两个哈希值的序列化数据如下：
 
-<img/img src="block_header_serialization.svg" width="100%" height="341" />
+<img src="block_header_serialization.svg" width="100%" height="341" />
 
 {|
-!Zero-based Buffer Offset!!Number of Bytes!!Name!!Data Type!!Notes
+!从零开始的缓冲区偏移!!字节数!!名称!!数据类型!!记录
 |-
 |0||4||Block Version||int32||Little endian.
 |-
@@ -150,18 +150,13 @@ capable of hash rates up to around 18.4 EH/s (18.4x10<sup>18</sup> hashes/sec).
 |176||4||Stake Version||uint32||Little endian
 |}
 
-===Difficulty Bits Format===
+===比特难度格式===
 
-The target difficulty threshold MUST retain the existing difficulty bits format
-when specified in the difficulty bits field of each header.
+当在每个标头的难度位字段中指定时，目标难度阈值必须保留现有的比特难度格式。
 
-The difficulty bits format is a representation of the most significant
-bits of a target difficulty with an unsigned 32-bit integer.  The representation
-is similar to IEEE754 floating point<ref>[[https://en.wikipedia.org/wiki/IEEE_754|Wikipedia: IEEE754]]</ref>.
+比特难度格式是用无符号 32 位整数表示目标难度的最高有效位。该表示法类似于 IEEE754 浮点<ref>[[https://en.wikipedia.org/wiki/IEEE_754|Wikipedia: IEEE754]]</ref>。
 
-Like IEEE754 floating point, there are three basic components: the sign,
-the exponent, and the mantissa (also called the significand).  They are broken
-out per the following diagram and specification:
+与 IEEE754 浮点一样，也有三个基本组成部分：符号、指数和尾数（也称为有效数）。它们按照以下图表和规格进行细分：
 
 <!--E(T) = \begin{cases}0 & \text{if } T = 0 \\2^{24}\cdot exponent + mantissa & \text{if } T \gt 0 \\2^{24}\cdot exponent + 2^{23} + mantissa & \text{if } T \lt 0\end{cases}-->
 <!--exponent = \left\lfloor log_{256}(2 \cdot |T|) \right\rfloor + 1-->
@@ -170,7 +165,7 @@ out per the following diagram and specification:
 <img src="difficulty_bits_breakdown.svg" width="100%" height="534" />
 
 {|
-!Bits!!Description
+!比特难度!!描述
 |-
 |0-22|||Mantissa (Significand).  The most significant bits.  A bitmask of
 0x007fffff may be applied to extract this value.
@@ -181,112 +176,91 @@ is set.
 |24-31||Exponent.  The base 256 exponent plus 3.
 |}
 
-====Implementation Warning====
+====实施警告====
 
-The provided formulas for encoding specify the required calculations precisely,
-however, most programming languages will not produce the correct results for all
-values when naively implementing the formulas directly due to rounding errors
-and precision constraints in libraries that implement logarithms
-<sup>[ [[#typical-logarithm-precision-limitations|Details]] ]</sup>.
+提供的编码公式精确地指定了所需的计算，但是，由于实现对数库中的舍入误差和精度限制，大多数编程语言在直接实现公式时不会为所有值生成正确的结果<sup>[ [[#typical-logarithm-precision-limitations|详细信息]] ]</sup>。
 
-Therefore, it is HIGHLY RECOMMENDED to use the algorithms outlined in the
-remainder of this section to perform the encoding and decoding versus attempting
-to implement the formulas directly.  The provided algorithms implement the
-formulas with a combination of integer math, modular arithmetic, bit shifts, and
-bitmasks, all of which produce exact results and are highly portable.
+因此，强烈建议使用其余部分概述的算法来执行编码和解码，而不是尝试直接实现公式。提供的算法通过整数数学、模算术、位移位和位掩码的组合来实现公式，所有这些都会产生精确的结果并且具有高度可移植性。
 
-====Precision Considerations====
+====精度考虑因素====
 
-The following algorithms rely on arbitrary precision integers in order to
-support decoding the full range of possible values that can be encoded.
+以下算法依赖于任意精度整数，以支持对可编码的全部可能值进行解码。
 
-However, in practice, all target difficulties in Decred are enforced to be
-unsigned 256-bit integers.
+然而，实际上，Decred 中的所有目标困难都强制为无符号 256 位整数。
 
-Due to that, implementations MAY alternatively use unsigned 256-bit integers so
-long as they properly detect and reject encoded values that are negative or are
-greater than 2<sup>256</sup> - 1, the maximum value representable by an unsigned
-256-bit integer, when decoding.
+因此，实现可以选择使用无符号 256 位整数，只要它们在解码时正确检测并拒绝负数或大于 2<sup>256</sup> - 1（无符号 256 位整数可表示的最大值）的编码值。
 
-====Decoding Algorithm====
+====解码算法====
 
-The following algorithm will decode a target difficulty <code>T</code> from
-difficulty bits <code>c</code> using intermediate variables <code>m</code> for
-the mantissa and <code>x</code> for the exponent:
+以下算法将使用尾数和指数 的中间变量<code>T</code>从难度位解码目标难度：<code>c</code><code>m</code><code>x</code> 
 
-# Set <code>m = c (mod 2^23)</code> so that it is the least significant 23 bits of <code>c</code>
-#: Implementations MAY optimize this by using a bitmask: <code>m = c & 0x007fffff</code>
-# Set <code>x = floor(c / 2^24)</code> so that it is the most significant 8 bits of <code>c</code>
-#: Implementations MAY optimize this by using a right bit shift: <code>x = c >> 24</code>
-# If <code>x ≤ 3</code> then set <code>T = m / 256^(3 - x)</code> otherwise set <code>T = m * 256^(x - 3)</code>
-#: Implementations MAY optimize the <code>x ≤ 3</code> case by using a right bit shift: <code>T = m >> (8 * (3-x))</code> and the <code>x > 3</code>case by using a left bit shift: <code>T = m << (8 * (x-3))</code>
-#: NOTE: Ensure <code>T</code> is capable of handling big integers up to the maximum supported decodable values (± 8,388,607 x 2<sup>2016</sup> when supporting the entire range or 2<sup>256</sup> - 1 if only supporting unsigned 256-bit integers)
-# If bit 23 of <code>c</code> is set then return <code>-T</code> otherwise return <code>T</code>
+# 设置<code>m = c (mod 2^23)</code>为最低有效 23 位<code>c</code>
+#: 实现可以通过使用位掩码来优化它：<code>m = c & 0x007fffff</code>
+# 设置<code>x = floor(c / 2^24)</code>为最高有效 8 位<code>c</code>
+#: 实现可以通过使用右位移位来优化这一点：<code>x = c >> 24</code>
+# 如果<code>x ≤ 3</code> 则设置<code>T = m / 256^(3 - x)</code>否则设置<code>T = m * 256^(x - 3)</code>
+#: 实现可以<code>x ≤ 3</code>通过使用右位移位来优化情况：<code>T = m >> (8 * (3-x))</code>以及<code>x > 3</code>通过使用左位移位来优化情况： <code>T = m << (8 * (x-3))</code>
+#: 注意：Ensure <code>T</code>能够处理最大支持的可解码值的大整数（支持整个范围时为± 8,388,607 x 2<sup>2016</sup> ，如果仅支持无符号 256 位整数则为2<sup>256</sup> - 1）
+# <code>c</code>如果设置了位 23则返回<code>-T</code，否则返回<code>T</code>
 
-====Encoding Algorithm====
+====编码算法====
 
-The following algorithm will encode a target difficulty <code>T</code> to
-difficulty bits <code>c</code> using intermediate variables <code>m</code> for
-the mantissa and <code>x</code> for the exponent:
+以下算法将使用尾数和指数的 中间变量将目标难度编码<code>T</code>为难度位：<code>c</code><code>m</code><code>x</code> 
 
-# OPTIONAL: Assert <code>T ≥ 0</code> and <code>T ≤ 2^256 - 1</code>
-#: Implementations MAY optionally assert the input value is non-negative and is less than or equal to the max value representable by an unsigned 256-bit integer since target difficulties outside of that range are invalid in Decred
-# If <code>T = 0</code> then return <code>0</code>
-# Set <code>b = bitlen(T)</code> where <code>bitlen</code> is a function that returns the number of bits necessary to represent the value in binary
-# Set <code>x = floor((b + 7) / 8)</code>
-# If <code>x ≤ 3</code> then set <code>m = abs(T) * 256^(3 - x)</code> otherwise set <code>m = floor(abs(T) / 256^(x - 3))</code>
-#: Implementations MAY omit taking the absolute value if the optional first step to assert the input value is non-negative is implemented
-#: Implementations MAY optimize the <code>x ≤ 3</code> case by using a left bit shift: <code>m = abs(T) << (8 * (3-x))</code> and the <code>x > 3</code> case by using a right bit shift: <code>m = abs(T) >> (8 * (x-3))</code>
-# If bit 23 of <code>m</code> is set then set <code>m = floor(m / 256)</code> and set <code>x = x + 1</code>
-#: Implementations MAY optimize this by using a right bit shift: <code>m = m >> 8</code>
-# Set <code>c = (x * 2^24) + m</code>
-#: Implementations MAY optimize this by using a left bit shift and a bitwise OR: <code>c = (x << 24) | m</code>
-# If <code>T < 0</code> then set <code>c = c + 2^23</code> in order to set the sign bit
-#: Implementations MAY omit this step if the optional first step to assert the input value is non-negative is implemented instead
-#: Implementations MAY optimize this by using a bitwise OR with a bitmask: <code>c = c | 0x00800000</code>
-# Return <code>c</code>
 
-===ASERT Difficulty Adjustment Algorithm===
+# OPTIONAL:Assert <code>T ≥ 0</code> 和 <code>T ≤ 2^256 - 1</code>
+#: 实现可以选择断言输入值是非负的，并且小于或等于无符号 256 位整数表示的最大值，因为超出该范围的目标难度在 Decred 中是无效的
+# 如果 <code>T = 0</code> 则返回 <code>0</code>
+# 设置 <code>b = bitlen(T)</code> 其中 <code>bitlen</code> 是一个函数，返回表示二进制值所需的位数
+# 设置 <code>x = floor((b + 7) / 8)</code>
+# 如果 <code>x ≤ 3</code> 则设置 <code>m = abs(T) * 256^(3 - x)</code> 否则设置 <code>m = floor(abs(T) / 256^(x - 3))</code>
+#: 如果实现了断言输入值非负的可选第一步，则实现可以省略取绝对值
+#: 实现可以 <code>x ≤ 3</code> 通过使用左位移位来优化情况： <code>m = abs(T) << (8 * (3-x))</code> 以及 <code>x > 3</code> 通过使用右位移位来优化情况： <code>m = abs(T) >> (8 * (x-3))</code>
+#  <code>m</code> 如果设置了位 23 则设置 <code>m = floor(m / 256)</code> 并设置 <code>x = x + 1</code>
+#: 实现可以通过使用右位移位来优化这一点： <code>m = m >> 8</code>
+# 设置 <code>c = (x * 2^24) + m</code>
+#: 实现可以通过使用左移位和按位或来优化这一点： <code>c = (x << 24) | m</code>
+# 如果 <code>T < 0</code> 则设置 <code>c = c + 2^23</code> 设置符号位
+#: 如果实现了断言输入值非负的可选第一步，则实现可以省略此步骤
+#: 实现可以通过使用位掩码的按位或来优化这一点： <code>c = c | 0x00800000</code>
+# 返回 <code>c</code>
 
-This specification proposes a new difficulty adjustment algorithm (DAA) named
-ASERT (Absolutely Scheduled Exponentially Rising Targets).
+===ASERT难度调整算法===
 
-====ASERT Difficulty Calculation Interval====
+该规范提出了一种新的难度调整算法（DAA），名为 ASERT（绝对调度指数上升目标）。
 
-The required target difficulty MUST be calculated every block using the new
-ASERT algorithm.
+====ASERT 难度计算间隔====
 
-Note that the per-block calculation requirement is different than the periodic
-calculation requirement enforced by the DAA prior to this specification.
+必须使用新的 ASERT 算法计算每个块所需的目标难度。
 
-====ASERT Anchor Block====
+请注意，每个块的计算要求与 DAA 在本规范之前强制执行的定期计算要求不同。
 
-All target difficulty calculations MUST be performed relative to an anchor
-block determined as follows:
 
-* For the main network and version 3 of the test network:
-** The anchor block MUST be set to one block prior to the block at which the new rules take effect
-* For other networks that use the proposed algorithm from the start:
-** The anchor block MUST be set to block 1 once it is mined
-** The target difficulty for block 1 MUST bet set to the initial starting difficulty for the network
+====ASERT 锚定块====
 
-UPDATE:
+所有目标难度计算必须相对于如下确定的锚定块来执行：
 
-Now that the agenda votes for this proposal on the main network and version 3 of
-the test network have passed and the new rules are active, their concrete anchor
-blocks have been determined as follows:
+* 对于主网和测试网版本3：
+** 锚定定区块必须设置为新规则生效区块之前的一个区块
+* 对于从一开始就使用所提出的算法的其它网络：
+** 锚定块一旦被开采就必须设置为块 1
+** 区块 1 的目标难度必须设置为网络的初始难度
+
+更新：
+
+现该提案在主网和测试网第3版的议程投票均已通过，新规则已生效，其具体锚定区块已确定如下：
 
 {|
-!Network!!Block Hash!!Block Height
+!网络!!区块哈希!!区块高度
 |-
-|mainnet||0000000000000000c293d8c67409d05e960447ea25cdaf770e864d995c764ef0||794367
+|主网||0000000000000000c293d8c67409d05e960447ea25cdaf770e864d995c764ef0||794367
 |-
-|testnet version 3||000000b396bfeaa6ae6fa9e3cee441d7215191630bdaa9b979a872985caed727||1170047
+|测试网版本 3||000000b396bfeaa6ae6fa9e3cee441d7215191630bdaa9b979a872985caed727||1170047
 |}
 
-Implementations MAY hard code these values for simplicity.
+为了简单起见，实现可以对这些值进行硬编码。
 
-====ASERT Difficulty Calculation Formula====
+====ASERT难度计算公式====
 
 <!--
 T_{N} = \mathrm{min}\left(\mathrm{max}\left(\left\lfloor T_{s} \cdot F \cdot 2^{n-16}\right\rfloor, 1\right), T_{ub}\right)
@@ -297,20 +271,20 @@ F = 2^{16} + \left\lfloor\frac{195766423245049f + 971821376f^{2} +5127f^{3} + 2^
 -->
 <img src="asert.svg" width="100%" height="379" />
 
-Explanation of terms:
+术语解释：
 
-T<sub>N</sub> = Target difficulty at a given height N<br />
-T<sub>s</sub> = Initial starting difficulty<br />
-Δt = Time delta in seconds between the most recent block and the anchor block<br />
-Δh = Height delta between the most recent block and the anchor block<br />
-I<sub>b</sub> = Target block interval in seconds<br />
-T<sub>ub</sub> = Upper bound for the final computed target difficulty (Proof of Work limit)<br />
-𝜏 = Half life in seconds
+T<sub>N</sub> = 给定高度下的目标难度 N<br />
+T<sub>s</sub> = 初始启动难度<br />
+Δt = 最近区块与锚定块之间的时间增量（以秒为单位）<br />
+Δh = 最近区块与锚定块之间的高度增量<br />
+I<sub>b</sub> = 目标块间隔以秒为单位<br />
+T<sub>ub</sub> = 最终计算目标难度的上限（工作量证明限制）<br />
+𝜏 = 半衰期以秒为单位
 
-The following per-network values MUST be used for the calculations:
+必须使用以下每个网络值进行计算：
 
 {|
-!Parameter!!Main Network Value!!Test Network (version 3) Value
+!范围!!主网值!!测试网 (版本 3) 值
 |-
 |T<sub>s</sub>||42,406 x 2<sup>192</sup>||65,535 x 2<sup>216</sup>
 |-
@@ -321,78 +295,59 @@ The following per-network values MUST be used for the calculations:
 |𝜏||43,200||720
 |}
 
-Important implementation considerations:
+重要的实施注意事项：
 
-* Negative height deltas (<code>Δh</code>) are NOT possible in a correct implementation due to the constraints imposed by the anchor block selection
-** Implementations MAY add an assertion for this precondition
-* The <code>Int</code> function used in the calculation of the exponent (<code>x</code>) denotes the integer part of the value which implies truncation towards 0
-** Note that this differs from the floor function which truncates towards negative infinity for negative values
-** Implementations MUST ensure truncation towards 0 for this calculation
-* The fractional portion (<code>f</code>) of the exponent (<code>x</code>) is expected to be normalized to the range &#91;0,2<sup>16</sup>) which is the standard behavior for the modulo operator
-** Implementations MAY optimize the calculation by performing a bitwise AND with the mask 0xffff
-* The integer portion (<code>n</code>) of the exponent (<code>x</code>) is a floored division which truncates towards negative infinity for negative values
-** Implementations MAY optimize the calculation by using an '''arithmetic'''<ref>[[https://en.wikipedia.org/wiki/Arithmetic_shift|Wikipedia: Arithmetic shift]]</ref> right shift by 16
-*** WARNING: A '''logical'''<ref>[[https://en.wikipedia.org/wiki/Logical_shift|Wikipedia: Logical shift]]</ref> right shift for this calculation will NOT produce correct results for all inputs
-* For the calculation of the fractional factor <code>F</code>:
-** The numerator inside the floor is guaranteed to be positive due to the range of <code>f</code>
-** The numerator inside the floor requires a full 64 bits to avoid overflow
-** Implementations MAY optimize the floored division by 2<sup>48</sup> by using a right shift by 48 instead
-** The overall result is guaranteed to be a maximum of 17 bits
-* Implementations MAY optimize the multiplication by 2<sup>n-16</sup> in the final floored target difficulty calculation by either using a left shift by n-16 when n ≥ 16 or a right shift by 16-n when n < 16
+*  由于锚定块选择所施加的限制，负高度增量(<code>Δh</code>)在正确的实现中是不可能的
+** 实现可以为此前提条件添加断言
+* <code>Int</code> 计算指数时使用的函数 (<code>x</code>)表示值的整数部分，这意味着向 0 截 
+** 请注意，这与下取整函数不同，下取整函数将负值截断为负无穷大
+** 实现必须确保此计算截断为 0
+* 指数 (<code>f</code>)的小数部分  (<code>x</code>)  预计会标准化为范围 [0,2<sup>16</sup> )，这是模运算符的标准行为
+** 实现可以通过使用掩码 0xffff 执行按位 AND 来优化计算
+* 指数 (<code>n</code>) 的整数部分 (<code>x</code>) 是向下除法，对于负值会向负无穷大截断
+** 实现可以通过使用算术<ref>[[https://en.wikipedia.org/wiki/Arithmetic_shift|Wikipedia: Arithmetic shift]]</ref>右移 16 来优化计算
+*** 警告: 此计算的逻辑<ref>[[https://en.wikipedia.org/wiki/Logical_shift|Wikipedia: Logical shift]]</ref>右移不会为所有输入产生正确的结果
+* 对于分数因子的计算<code>F</code>:
+** 由于范围的缘故，地板内的分子保证为正值<code>f</code>
+** 地板内部的分子需要全64位以避免溢出
+** 实现可以通过使用右移 48 来优化地板除法 2 <sup>48</sup> 
+** 总体结果保证最大为 17 位
+*实现可以通过在 n ≥ 16 时使用左移 n-16 或在 n < 16 时右移 16-n 来优化最终下底目标难度计算中的乘法 2<sup>n-16</sup> 
 
-===Proof of Work Enforcement===
+===工作量证明执行===
 
-This section uses the terms '''target difficulty''' to refer to a concrete
-numeric value and '''difficulty bits''' to refer to the
-[[#difficulty-bits-format|encoded compact form]] of the target difficulty.
+本节使用术语'''目标难度'''来指代具体的数值，使用'''难度位'''来指代 目标难度的[[#difficulty-bits-format|编码紧凑形式]]。
 
-The following difficulty rules MUST be enforced:
+必须执行以下难度规则：
 
-* The target difficulty obtained by decoding the difficulty bits in the block header MUST be larger than zero
-* The target difficulty obtained by decoding the difficulty bits in the block header MUST be less than or equal to the Proof of Work limit for the active network:
-** <code>mainnet</code>: 2<sup>224</sup> - 1
-** <code>testnet version 3</code>: 2<sup>232</sup> - 1
-* The difficulty bits in the block header MUST match the expected difficulty bits obtained by encoding the target difficulty calculated by the [[#asert-difficulty-calculation-formula|ASERT Difficulty Calculation Formula]] to the compact form
-** CAUTION: It is important to compare the encoded difficulty bits as opposed to the decoded target difficulty values because the difficulty bits encoding format truncates all but the most significant bits of target difficulties
+* 通过解码块头中的难度位获得的目标难度必须大于零
+* 通过解码块头中的难度位获得的目标难度必须小于或等于活动网络的工作量证明限制：
+** <code>主网</code>: 2<sup>224</sup> - 1
+** <code>测试网版本 3</code>: 2<sup>232</sup> - 1
+* 块头中的难度位必须与通过将ASERT 难度计算公式计算出的目标难度编码为紧凑形式而获得的预期难度位相匹配
+** 注意：将编码的难度位与解码的目标难度值进行比较非常重要，因为难度位编码格式会截断目标难度中除最高有效位之外的所有位
 
-The following rule MUST be transitioned to use the the new Proof of Work hash
-introduced by this specification instead of the block hash:
+以下规则必须转换为使用本规范引入的新PoW 哈希，而不是区块哈希：
 
-* The PoW hash MUST be treated as a little endian unsigned 256-bit integer and be less than or equal to the target difficulty obtained by decoding the difficulty bits in the block header
+* PoW 哈希必须被视为小端无符号 256 位整数，并且小于或等于通过解码块头中的难度位获得的目标难度
 
-==Rationale==
+==基本原理==
 
-===Difficulty Bits Format Retention===
+===位格式保留难度===
 
-The [[#difficulty-bits-format|difficulty bits]] format was inherited from
-legacy code and is less than ideal in various ways.  For example, since it is
-only ever necessary to encode target difficulties that are unsigned 256-bit
-integers, the sign bit really is not required and its existence only serves to
-complicate encoding and decoding in practice.
+难度位格式是从遗留代码继承的，在很多方面都不太理想。例如，由于只需要对无符号 256 位整数的目标困难进行编码，因此实际上不需要符号位，并且它的存在只会使实践中的编码和解码变得复杂。
 
-Changing the format was strongly considered for this proposal, however, the
-inherited format is retained, despite its shortcomings, in order to reduce the
-scope of changes software in the ecosystem is required to handle.
+该提案强烈考虑了更改格式，但是，尽管有缺点，继承的格式仍被保留，以减少生态系统中软件需要处理的更改范围。
 
-===Typical Logarithm Precision Limitations===
+===典型的对数精度限制===
 
-Many languages implement logarithms with 64-bit floating point values which only
-provide 53 bits of precision for the significand.  This means that it is not
-possible to fully represent any values that have more than 15 to 17 significant
-decimal digits depending on the exponent.
+许多语言使用 64 位浮点值实现对数，但仅提供 53 位有效位数的精度。这意味着不可能完全表示任何具有超过 15 到 17 位有效十进制数字的值（具体取决于指数）。
 
-For example, consider the value 2<sup>55</sup> - 1 = 36,028,797,018,963,967.
-Converting it to a 64-bit floating point and back to an unsigned 64-bit integer
-yields 36,028,797,018,963,968 instead of the original value.
+例如，考虑值 2<sup>55</sup> - 1 = 36,028,797,018,963,967。将其转换为 64 位浮点数，然后再转换回无符号 64 位整数，将得到 36,028,797,018,963,968，而不是原始值。
 
-This precision loss can lead to inaccurate results when directly implementing
-formulas that involve logarithms.
+当直接实现涉及对数的公式时，这种精度损失可能会导致结果不准确。
 
-Concretely, consider the formula for calculating the exponent provided in the
-[[#difficulty-bits-format|Difficulty Bits Format]] section which involves a base
-256 logarithm.  The following Python code that calculates the exponent via the
-formula directly for the aforementioned value of 2<sup>55</sup> - 1 produces an
-incorrect exponent of 8 instead of the expected correct value of 7:
+具体来说，考虑难度位格式部分中提供的计算指数的公式， 该公式涉及以 256 为底的对数。以下 Python 代码直接通过公式计算上述值 2 55 - 1 的指数，结果生成错误的指数 8，而不是预期的正确值 7：
 
 <source lang="python">
 import math
@@ -403,109 +358,61 @@ def calcExponent(n):
 print(calcExponent(2**55 - 1)) # WARNING: Incorrect result!
 </source>
 
-For this reason, implementations of consensus code are STRONGLY encouraged to
-avoid implementing formulas that involve logarithms directly unless they can
-fully guarantee correct results for all possible values in the input domain.
+因此，强烈鼓励共识代码的实现避免直接涉及对数的公式，除非它们能够完全保证输入域中所有可能值的正确结果。
 
-===ASERT Algorithm Derivation===
+===ASERT算法推导===
 
-The ASERT algorithm specified in this proposal is an approximation of the
-ideal exponential equation:
+本提案中指定的 ASERT 算法是理想指数方程的近似：
 
 <!--T_{N} = \mathrm{min}\left(\mathrm{max}\left(T_{s} \cdot \mathrm{e}^{\frac{\Delta t - \Delta h \cdot I_{b}}{\tau}}, 1\right), T_{ub}\right)-->
 <img src="asert_ideal.svg" width="100%" height="55" />
 
-See the [[#asert-difficulty-calculation-formula|specification]] section for an
-explanation of the terms.
+有关术语的解释， 请参阅[[#asert-difficulty-calculation-formula|规范部分]]。
 
-However, since
-<code>e</code><ref>[[https://en.wikipedia.org/wiki/E_(mathematical_constant)|Wikipedia: e (mathmetical constant)]]</ref>
-is a transcendental number, any calculations used in consensus code necessarily
-have to choose a well-defined approximation in order to achieve reproducible
-results.  Ideally, the approximation should be an integer to avoid floating
-point math.  While 3 is the closest integer approximation, computers are
-particularly efficient when calculating with powers of 2, so the derivation
-starts by approximating <code>e</code> as 2, which yields the goal equation:
+然而，由于<code>e</code><ref>[[https://en.wikipedia.org/wiki/E_(mathematical_constant)|Wikipedia: e (mathmetical constant)]]</ref>是一个超越数，共识代码中使用的任何计算都必须选择明确定义的近似值才能获得可重现的结果。理想情况下，近似值应该是整数以避免浮点数学。虽然 3 是最接近的整数近似值，但计算机在使用 2 的幂进行计算时特别高效，因此推导从近似e为 2 开始，从而得出目标方程：
 
 <!--T_{N} = \mathrm{min}\left(\mathrm{max}\left(T_{s} \cdot 2^{\frac{\Delta t - \Delta h \cdot I_{b}}{\tau}}, 1\right), T_{ub}\right)-->
 <img src="asert_goal.svg" width="100%" height="55" />
 
-Note that the goal equation involves a fractional exponent which similarly
-requires choosing a well-defined approximation for the same reasons.  Simply
-rounding or truncating the exponent would produce an approximation that
-introduces more error than is desired.  Instead, the next steps in the
-derivation recast the formula to an approximation that uses a combination of
-fixed-point integer
-arithmetic<ref>[[https://en.wikipedia.org/wiki/Fixed-point_arithmetic|Wikipedia: Fixed-point arithmetic]]</ref>
-and a cubic polynomial approximation for the 2<sup>x</sup> term.
+请注意，目标方程涉及分数指数，出于同样的原因，同样需要选择明确定义的近似值。简单地对指数进行舍入或截断会产生近似值，从而引入比预期更多的误差。相反，推导中的后续步骤将公式重新转换为近似值，该近似值使用定点整数算术<ref>[[https://en.wikipedia.org/wiki/Fixed-point_arithmetic|Wikipedia: Fixed-point arithmetic]]</ref>和 2 <sup>x</sup>项 的三次多项式近似值的组合。
 
-The scaling factor for the fixed-point integer arithmetic is chosen to be
-2<sup>16</sup> (x.16 fixed-point).  The primary motivation for this choice is
-that it provides enough precision to avoid introducing any additional error
-over and above the 2<sup>-15</sup> error the
-[[#difficulty-bits-format|difficulty bits]] format incurs and it is also a power
-of 2 making it efficient to calculate via bit shifts.  Applying fixed-point
-modifications with that scaling factor yields:
+定点整数运算的比例因子选择为 2<sup>16</sup> (x.16 定点)。这种选择的主要动机是，它提供了足够的精度，以避免引入超过难度位格式产生的 2<sup>-15</sup>误差 的任何额外误差，并且它也是 2 的幂，使得通过位移位进行计算变得高效。使用该比例因子应用定点修改会产生：
 
 <!--T_{N} \approx \mathrm{min}\left(\mathrm{max}\left(\left\lfloor\frac{\left\lfloor2^{16} \cdot T_{s} \cdot 2^{\frac{\Delta t - \Delta h \cdot I_{b}}{\tau}}\right\rfloor}{2^{16}}\right\rfloor, 1\right), T_{ub}\right)-->
 <img src="asert_scaled.svg" width="100%" height="119" />
 
-Turning to the calculation of the 2<sup>x</sup> term, a good goal approximation
-to 2<sup>x</sup> over the interval 0 ≤ x < 1 is the cubic polynomial:
+转向 2<sup>x</sup>项的计算，在 0 ≤ x < 1 区间内 2<sup>x</sup>的良好目标近似是三次多项式：
 
 <!--2^{x} \approx 1 + 0.695502049712533x + 0.2262697964x^{2} + 0.0782318x^{3}-->
 <img src="asert_two_to_x_approx.svg" width="100%" height="29" />
 
-The final form of this approximation derived below provides
-[[#asert-relative-cubic-polynomial-approximation-error|an absolute error margin
-< 0.013%]] over the aforementioned interval of &#91;0,1) which is well under the
-0.1% error margin needed for good results.
+下面导出的这种近似的最终形式提供了 在上述 [0,1) 区间内 < 0.013% 的绝对误差范围，这远低于获得良好结果所需的 0.1% 误差范围。
 
-Keeping in mind that the overall calculation has been scaled by 2<sup>16</sup>
-for the fixed-point integer arithmetic, the scaled form of the goal
-approximation to 2<sup>x</sup> is:
+请记住，对于定点整数算术，整体计算已按 2<sup>16</sup>缩放，目标近似值 2<sup>x</sup>的缩放形式为：
 
 <!--2^{16} \cdot 2^x \approx 2^{16} + 2^{16} \cdot 0.695502049712533x + 2^{16} \cdot 0.2262697964x^2 + 2^{16} \cdot 0.0782318x^3-->
 <img src="asert_two_to_x_approx_scaled.svg" width="100%" height="29" />
 
-However, there are still a few things that need to be handled in order to use
-the goal approximation in consensus-critical code:
+然而，为了在共识关键代码中使用目标近似，仍然需要处理一些事情：
 
-# The input domain is not constrained to the valid interval &#91;0,1)
-# The exponent is not an integer and can be negative
-# The goal approximation formula involves non-integer coefficients
+# 输入域不受有效区间 [0,1) 的限制
+# 指数不是整数，可以为负数
+# 目标近似公式涉及非整数系数
 
-In order to achieve the correct input domain, note that by exponent rules
-2<sup>n+f</sup> = 2<sup>n</sup> x 2<sup>f</sup>.  Using this fact, the exponent
-is decomposed into an integer part, n, and a fractional part, f, such that f is
-in the desired range of &#91;0,1).  Then, the result is calculated by applying
-the scaled cubic polynomial approximation to the fractional part and multiplying
-by 2<sup>n</sup>.
+为了获得正确的输入域，请注意指数规则 2<sup>n+f</sup> = 2<sup>n</sup> x 2<sup>f</sup>。利用这一事实，指数被分解为整数部分 n 和小数部分 f，使得 f 位于所需的 [0,1) 范围内。然后，通过将缩放的三次多项式近似应用于小数部分并乘以 2<sup>n</sup>来计算结果。
 
-To make the exponent an integer, it is also scaled by 2<sup>16</sup> and
-calculated via fixed-point integer arithmetic.  Note this implies the integer
-part, n, and the fractional part, f, in the aforementioned decomposition are
-also scaled by 2<sup>16</sup>.
+为了使指数成为整数，它还被缩放 2<sup>16</sup>并通过定点整数算术计算。请注意，这意味着上述分解中的整数部分 n 和小数部分 f 也按 2<sup>16</sup>缩放。
 
-Further, since the exponent can be negative and involves a division, a choice
-needs to be made to either round towards 0 (truncation) or round towards
-negative infinity (floor).  This implementation chooses truncation for
-convenience since the division is by a term that is not a power of two and most
-programming languages implement truncated division with their built-in
-operators.  On the other hand, floor is preferred for division that involves
-powers of two since it can be computed efficiently via arithmetic shifts which
-behave the same as the floor function.
+此外，由于指数可以为负数并且涉及除法，因此需要选择是向 0 舍入（截断）还是向负无穷大（下取整）舍入。为了方便起见，此实现选择截断除法，因为除法是按不是 2 的幂的项进行的，并且大多数编程语言都使用其内置运算符实现截断除法。另一方面，下限对于涉及 2 的幂的除法来说是首选，因为它可以通过算术移位来有效地计算，其行为与下限函数相同。
 
-Taking everything into account, the resulting approximated exponent and
-decomposition is:
+考虑到所有因素，得到的近似指数和分解为：
 
 <!--x = \rm{Int}\left(\frac{2^{16}(\Delta t - \Delta h \cdot I_{b})}{\tau}\right)-->
 <!--n = \left\lfloor\frac{x}{2^{16}}\right\rfloor-->
 <!--f = x\bmod{2^{16}}-->
 <img src="asert_exponent_decomp.svg" width="100%" height="98" />
 
-Substituting the scaled fractional part into the scaled goal approximation for
-2<sup>x</sup> and dividing out the additional scaling factors introduced yields:
+将缩放小数部分代入缩放目标近似值 2<sup>x</sup>并除以引入的附加缩放因子，得到：
 
 <!--
 F \approx 2^{16} + \left\lfloor \frac{\lceil2^{48} \cdot 0.695502049712533f\rceil+ \lceil2^{32} \cdot 0.2262697964f^2\rceil + \lceil2^{16} \cdot 0.0782318f^3\rceil  + 2^{47}}{2^{48}}\right\rfloor
@@ -513,9 +420,7 @@ F \approx 2^{16} + \left\lfloor \frac{195766423245049f + 971821376f^2 + 5127f^3 
 -->
 <img src="asert_fractional_substitution.svg" width="100%" height="141" />
 
-Next, the coefficients are converted to integers by multiplying by the remaining
-scaling factors and taking the ceiling.  Also, an additional 2<sup>47</sup> term
-is added inside the floor to round up.  The result of these modifications is:
+接下来，通过乘以剩余的缩放因子并取上限，将系数转换为整数。此外，还在底限内添加了额外的 2<sup>47</sup>项以进行四舍五入。这些修改的结果是：
 
 <!--
 F \approx 2^{16} + \left\lfloor \frac{\left\lceil2^{48} \cdot 0.695502049712533f\right\rceil+ \left\lceil2^{32} \cdot 0.2262697964f^2\right\rceil + \left\lceil2^{16} \cdot 0.0782318f^3\right\rceil  + 2^{47}}{2^{48}}\right\rfloor
@@ -523,133 +428,105 @@ F \approx 2^{16} + \left\lfloor \frac{195766423245049f + 971821376f^2 + 5127f^3 
 -->
 <img src="asert_fractional_approx.svg" width="100%" height="170" />
 
-Finally, substituting the integer and fractional components for the
-2<sup>x</sup> approximation back into the original fixed-point formulation of
-the goal equation for calculating the target difficulty, while also observing
-that by exponent rules 2<sup>n</sup> / 2<sup>16</sup> = 2<sup>n-16</sup>, yields
-the final form used in the specification:
+最后，将 2<sup>x</sup>近似的整数和小数部分代入目标方程的原始定点公式中，以计算目标难度，同时还观察到，通过指数规则 2<sup>n</sup> / 2<sup>16</sup> = 2<sup>n-16</sup>，得出规范中使用的最终形式：
 
 <!--T_{N} = \mathrm{min}\left(\mathrm{max}\left(\left\lfloor T_{s} \cdot F \cdot 2^{n-16}\right\rfloor, 1\right), T_{ub}\right)-->
 <img src="asert_final_form.svg" width="100%" height="37" />
 
-===ASERT Relative Cubic Polynomial Approximation Error===
+===ASERT 相对三次多项式近似误差===
 
-The following graph shows the relative approximation error vs 2<sup>x</sup>
-across the range of &#91;0,1) for the fixed-point approximation used in this
-specification:
+下图显示了本规范中使用的定点近似在 [0,1) 范围内相对 近似误差与 2<sup>x</sup>的关系：
 
 <img src="asert_rel_cubic_poly_approx_err_10k.svg" width="100%" height="748" />
 
-==Simulation Graphs==
+==模拟图==
 
-The following graphs provide a visualization of the results of simulating three
-mining scenarios using the new algorithm with main network parameters.  Namely,
-each of these scenarios involve random solve times that follow a Poisson
-distribution for a target average block time so that they simulate realistic
-mining behavior.
+下图提供了使用具有主要网络参数的新算法模拟三个挖掘场景的结果的可视化。也就是说，这些场景中的每一个都涉及随机求解时间，这些时间遵循目标平均区块时间的泊松分布，以便模拟真实的挖掘行为。
 
-Two graphs are provided for each scenario:
+为每个场景提供了两个图表：
 
-* A per-block difficulty ratio in order to illustrate the behavior and responsiveness of the difficulty algorithm
-* A histogram of the solve times overlaid with the ideal Poisson distribution to illustrate the simulation follows a realistic Poisson distribution as desired
+* 每个块的难度比，以说明难度算法的行为和响应能力
+* 求解时间的直方图与理想泊松分布重叠，以说明模拟遵循所需的实际泊松分布
 
-These scenarios, along with several others, are also included in the
-[[#asert-difficulty-calculations|ASERT Reference Test Vectors]].
+这些场景以及其他几个场景也包含在 [[#asert-difficulty-calculations|ASERT 参考测试向量]]中。
 
-===Scenario: Stable Hashrate===
+===场景：算力稳定===
 
-This scenario simulates a stable hashrate by targeting an average solve time of
-300 seconds which matches the actual target average block time for the main
-network.  The difficulty remains fairly stable with minor adjustments each block
-in order to maintain the desired block production rate.
+该场景通过将平均求解时间设定为 300 秒来模拟稳定的算力，该时间与主网络的实际目标平均出块时间相匹配。通过对每个区块进行细微调整，难度保持相当稳定，以维持所需的区块生产率。
 
 <img src="asert_stable.svg" width="100%" height="623" />
 
-===Scenario: Rapid Hashrate Increase===
+===场景：算力快速提升===
 
-This scenario simulates a rapid increase in hashrate by targeting an average
-solve time of 15 seconds which is much faster than the actual target average
-block time for the main network.  The difficulty rapidly increases in order to
-decrease the block production rate back to the desired target.
+该场景通过将平均求解时间设定为 15 秒来模拟算力的快速增长，这比主网络的实际目标平均出块时间要快得多。为了将区块生产率降低回到期望的目标，难度迅速增加。
 
 <img src="asert_increasing.svg" width="100%" height="621" />
 
-===Scenario: Rapid Hashrate Decrease===
+===场景：算力快速下降===
 
-This scenario simulates a rapid decrease in hashrate by targeting an average
-solve time of 1000 seconds which is much slower than the actual target average
-block time for the main network.  The difficulty rapidly decreases in order to
-increase the block production rate back to the desired target.
+该场景通过将平均求解时间设定为 1000 秒来模拟算力的快速下降，该时间比主网络的实际目标平均出块时间慢得多。为了将区块生产率提高回预期目标，难度迅速降低。
 
 <img src="asert_decreasing.svg" width="100%" height="622" />
 
-==Deployment==
+==部署==
 
-===Voting Agenda Parameters===
+===投票议程参数===
 
-This proposal will be deployed to mainnet using the standard Decred on-chain
-voting infrastructure as follows:
+该提案将使用标准 Decred 链上投票基础设施部署到主网，如下所示：
 
-{|
-!Name!!Setting
-|-
-|Deployment Version||10
-|-
-|Agenda ID||blake3pow
-|-
-|Agenda Description||Change proof of work hashing algorithm to BLAKE3 as defined in in DCP0011
-|-
-|Start Time||1682294400 (Apr 24th, 2023 00:00:00 +0000 UTC)
-|-
-|Expire Time||1745452800 (Apr 24th, 2025 00:00:00 +0000 UTC)
-|-
-|Mask||0x0006 (Bits 1 and 2)
-|-
-|Choices||{|
-!Choice!!English Description!!Bits
-|-
-|abstain||abstain voting for change||0x00
-|-
-|no||keep the existing consensus rules||0x0002 (Bit 1)
-|-
-|yes||change to the new consensus rules||0x0004 (Bit 2)
-|}
-|}
-
-===Voting Results===
-
-This proposal was approved by the stakeholder voting process and is now active.
 
 {|
-!Status!!Block Hash!!Block Height
+!名称!!设置
 |-
-|Voting Started||0000000000000000d608dc4ec7fcae5c650353db68a77f2954df74c25462f337||778240
+|部署版本||10
 |-
-|Locked In||0000000000000000896042b2b0536a4046e56ef505f20f7301ca7e042a5c218e||786304
+|议程编号||blake3pow
 |-
-|Active||071683030010299ab13f139df59dc98d637957b766e47f8da6dd5ac762f1e8c7||794368
+|议程说明||将工作量证明哈希算法更改为 DCP0011 中定义的 BLAKE3
+|-
+|开始时间||1682294400 (4月24日, 2023 00:00:00 +0000 UTC)
+|-
+|过期时间||1745452800 (4月24日, 2025 00:00:00 +0000 UTC)
+|-
+|Mask||0x0006 (Bits 1 和 2)
+|-
+|选择||{|
+!选择!!说明!!Bits
+|-
+|弃权||对变更投弃权票||0x00
+|-
+|否决||保留现有的共识规则||0x0002 (Bit 1)
+|-
+|支持||更改新的共识规则	||0x0004 (Bit 2)
+|}
 |}
 
-==Compatibility==
+===投票结果===
 
-This is a hard-forking change to the Decred consensus.  This means that once
-the agenda is voted in and becomes locked in, anybody running code that fully
-validates blocks must upgrade before the activation time or they will reject
-all new blocks since their proof of work is invalid under the old rules.
+该提案已获得利益相关者投票程序的批准，现已生效。
 
-Other software that performs full validation will need to modify their consensus
-enforcement rules accordingly and any software that performs header validation,
-such as lightweight wallet and other SPV clients, will need to be updated to
-handle the changes specified herein.
 
-==Reference Implementation==
+{|
+!位置!!区块哈希!!区块高度
+|-
+|投票开始||0000000000000000d608dc4ec7fcae5c650353db68a77f2954df74c25462f337||778240
+|-
+|投票锁定||0000000000000000896042b2b0536a4046e56ef505f20f7301ca7e042a5c218e||786304
+|-
+|激活||071683030010299ab13f139df59dc98d637957b766e47f8da6dd5ac762f1e8c7||794368
+|}
 
-The following implementations are simplified versions intended to clearly
-illustrate the exact semantics of this specification with self-contained
-functions.  See the [[#pull-requests|pull requests]] section for links to the
-full implementations.
+==兼容性==
 
-===Proof of Work Hash Computation===
+这是对 Decred 共识的硬分叉改变。这意味着一旦议程被投票并被锁定，任何运行完全验证区块的代码的人都必须在激活时间之前升级，否则他们将拒绝所有新区块，因为他们的工作证明在旧规则下无效。
+
+执行完整验证的其他软件将需要相应地修改其共识执行规则，并且执行标头验证的任何软件（例如轻量级钱包和其他 SPV 客户端）将需要更新以处理此处指定的更改。
+
+==参考实现==
+
+以下实现是简化版本，旨在通过独立函数清楚地说明本规范的确切语义。请参阅[[#pull-requests|合并请求]]部分以获取完整实现的链接。
+
+===工作量证明哈希计算===
 
 <source lang="go">
 import (
@@ -719,7 +596,7 @@ func blake3PowHash(version int32, prevBlockHash, merkleRoot,
 }
 </source>
 
-===Difficulty Bits Decoding===
+===比特解码难度===
 
 <source lang="go">
 // diffBitsToBig converts the compact representation used to encode difficulty
@@ -773,7 +650,7 @@ func diffBitsToBig(bits uint32) *big.Int {
 }
 </source>
 
-===Difficulty Bits Encoding===
+===比特难度编码===
 
 <source lang="go">
 // bigToDiffBits converts a big integer to the compact representation used to
@@ -820,7 +697,7 @@ func bigToDiffBits(t *big.Int) uint32 {
 }
 </source>
 
-===ASERT Difficulty Calculation===
+===ASERT 难度计算===
 
 <source lang="go">
 // calcASERTDiff calculates a target difficulty for the given set of parameters
@@ -979,43 +856,31 @@ func calcASERTDiff(startDiffBits uint32, powLimit *big.Int, targetSecsPerBlock,
 }
 </source>
 
-===Pull Requests===
+===合并请求===
 
-====Deployment====
+====部署====
 
-A reference implementation of the required agenda definition is implemented by
-[[https://github.com/decred/dcrd/pull/3089|pull request #3089]].
+所需议程定义的参考实现是通过[[https://github.com/decred/dcrd/pull/3089|pull request #3089]]实现.
 
-====Consensus Enforcement and Vote====
+====共识执行和投票====
 
-A reference implementation of the required consensus changes to enforce the
-changes specified in this proposal is provided by
-[[https://github.com/decred/dcrd/pull/3115|pull request #3115]].
+[[https://github.com/decred/dcrd/pull/3115|pull request #3115]]提供了执行本提案中指定的更改所需的共识更改的参考实现 。.
 
-==Test Vectors==
+==测试载体==
 
-The following test vectors are provided in order to facilitate testing across
-implementations.
+提供以下测试向量是为了促进跨实现的测试。
 
-The test vectors are all provided as JSON so that implementations can easily
-copy them and programmatically parse them to avoid transposition errors.
+测试向量均以 JSON 形式提供，以便实现可以轻松复制它们并以编程方式解析它们以避免转置错误。
 
-===BLAKE3 Proof of Work Hashes===
+===BLAKE3 工作哈希证明===
 
-The JSON test vectors for the BLAKE3 Proof of Work computation are available in
-[[blake3_powhash_test_vectors.json]].
+用于 BLAKE3 工作量证明计算的 JSON 测试向量可在 [[blake3_powhash_test_vectors.json]].中找到。
 
-The test data consists of a series of block header fields to serialize for
-constructing BLAKE3 Proof of Work hashes along with the expected hashes.  It
-also provides the expected serialized preimage for convenience so
-implementations can cross check the expected input to the hash function if they
-don't get the expected PoW hash.
+测试数据由一系列块头字段组成，用于序列化以构建 BLAKE3 工作证明哈希值以及预期哈希值。为了方便起见，它还提供了预期的序列化原像，因此如果实现没有获得预期的 PoW 哈希，则可以交叉检查哈希函数的预期输入。
 
-Finally, comments are provided near the top that describe the format of each of
-the fields.
+最后，顶部附近提供了注释，描述了每个字段的格式。
 
-The following example Go code provides a test function that loads and parses the
-file, executes all tests, and validates the results:
+以下示例 Go 代码提供了一个测试函数，用于加载和解析文件、执行所有测试并验证结果：
 
 <source lang="go">
 func blake3PowHash(version int32, prevBlockHash, merkleRoot,
@@ -1117,19 +982,13 @@ func TestPoWHash(t *testing.T) {
 }
 </source>
 
-===ASERT Difficulty Calculations===
+===ASERT 难度计算===
 
-The JSON test vectors for the ASERT difficulty algorithm are available in
-[[asert_test_vectors.json]].
+ASERT 难度算法的 JSON 测试向量可在[[asert_test_vectors.json]].中找到。
 
-The test data is comprised of various scenarios that consist of a set of
-parameters, starting conditions, and a series of block heights and timestamps
-relative to those starting conditions along with the expected resulting
-difficulty bits for them.  The test data also has comments near the top that
-describe the format of each of the fields.
+测试数据由各种场景组成，其中包括一组参数、起始条件以及与这些起始条件相关的一系列区块高度和时间戳，以及它们的预期结果难度位。测试数据在顶部附近还有注释，描述每个字段的格式。
 
-The following example Go code provides a test function that loads and parses the
-file, executes all tests, and validates the results:
+以下示例 Go 代码提供了一个测试函数，用于加载和解析文件、执行所有测试并验证结果：
 
 <source lang="go">
 func calcASERTDiff(startDiffBits uint32, powLimit *big.Int, targetSecsPerBlock,
@@ -1206,19 +1065,17 @@ func TestCalcASERTDiff(t *testing.T) {
 }
 </source>
 
-==Acknowledgements==
+==致谢==
 
-The ASERT algorithm in this proposal is heavily based on the work of the
-following sources:
+本提案中的 ASERT 算法在很大程度上基于以下来源的工作：
 
-* [[http://toom.im/files/da-asert.pdf|Static difficulty adjustments, with absolutely scheduled exponentially rising targets (DA-ASERT) -- v2]], Mark B. Lundeberg
-* [[https://arxiv.org/pdf/2006.03044.pdf|Unstable Throughput: When the Difficulty Algorithm Breaks]], Dragos I. Ilie, Sam M. Werner, Iain D. Stewart and William J. Knottenbelt
-* [[https://documentation.cash/protocol/forks/hf-20201115.html|BCH Upgrade HF-20201115]]
+* [[http://toom.im/files/da-asert.pdf|静态难度调整，绝对预定的指数上升目标（DA-ASERT）——v2]], Mark B. Lundeberg
+* [[https://arxiv.org/pdf/2006.03044.pdf|不稳定的吞吐量：当难度算法崩溃时]], Dragos I. Ilie, Sam M. Werner, Iain D. Stewart 和 William J. Knottenbelt
+* [[https://documentation.cash/protocol/forks/hf-20201115.html|BCH升级HF-20201115]]
 
-===Collaborators===
+===合作者===
 
-Thanks to the following individuals who provided valuable feedback during the
-review process of the consensus code and this proposal (alphabetical order):
+感谢以下人员在共识代码和本提案的审核过程中提供了宝贵的反馈（按字母顺序排列）：
 
 * David Hill ([[https://github.com/dajohi|@dajohi]])
 * Jamie Holdstock ([[https://github.com/jholdstock|@jholdstock]])
@@ -1226,21 +1083,19 @@ review process of the consensus code and this proposal (alphabetical order):
 * Josh Rickmar ([[https://github.com/jrick|@jrick]])
 * Matheus Degiovani ([[https://github.com/matheusd|@matheusd]])
 
-==References==
+==参考==
 
-===Inline References===
+===内联参考文献===
 
 <references />
 
-===Additional References===
+===附加参考资料===
 
-# [[https://raw.githubusercontent.com/BLAKE3-team/BLAKE3-specs/master/blake3.pdf|BLAKE3 Specification]]
-# [[https://proposals.decred.org/record/a8501bc|Politeia Proposal - Change PoW/PoS Subsidy Split to 1/89 and Change PoW Algorithm to BLAKE3]]
+# [[https://raw.githubusercontent.com/BLAKE3-team/BLAKE3-specs/master/blake3.pdf|BLAKE3规格]]
+# [[https://proposals.decred.org/record/a8501bc|Politeia 提案 - 将 PoW/PoS 区块奖励分割更改为 1/89，并将 PoW 算法更改为 BLAKE3]]
 
-==Copyright==
+==版权==
 
-This document is licensed under the
-[https://creativecommons.org/publicdomain/zero/1.0 CC0-1.0: Creative Commons CC0 1.0 Universal]
-license.
+本文档根据 [https://creativecommons.org/publicdomain/zero/1.0 CC0-1.0: Creative Commons CC0 1.0 Universal] 许可证获得许可。
 
-The code is licensed under the [https://opensource.org/licenses/ISC ISC License].
+该代码根据[https://opensource.org/licenses/ISC ISC License]获得许可。
