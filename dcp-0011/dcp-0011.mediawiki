@@ -1096,6 +1096,6 @@ func TestCalcASERTDiff(t *testing.T) {
 
 ==版权==
 
-本文档根据 [https://creativecommons.org/publicdomain/zero/1.0 CC0-1.0: Creative Commons CC0 1.0 Universal] 许可证获得许可。
+本文档根据 [https://creativecommons.org/publicdomain/zero/1.0 CC0-1.0: Creative Commons CC0 1.0 Universal] 获得许可。
 
 该代码根据[https://opensource.org/licenses/ISC ISC License]获得许可。
