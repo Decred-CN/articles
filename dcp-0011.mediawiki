@@ -35,9 +35,9 @@ DCP: 0011
 
 更改 PoW 的新哈希算法必然意味着将生成不同的哈希值。
 
-鉴于此，使用不同的哈希替区块哈希来强加 PoW 要求，允许独立更改哈希算法，而不会影响依赖<code>BLAKE-256</code>r14生成的区块哈希的任何其它功能。
+鉴于此，使用不同的哈希替区块哈希来强加 PoW 要求，允许独立更改哈希算法，而不会影响依赖<code>BLAKE-256 r14</code>生成的区块哈希的任何其它功能。
 
-===Required Target Difficulty Reset===
+===重置网络难度===
 
 The current required target difficulty is based on the existence of the
 aforementioned specialized hardware and would therefore be significantly too
