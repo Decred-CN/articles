@@ -1,0 +1,1101 @@
+<pre>
+DCP: 0011
+标题: 将 PoW 更改为 BLAKE3 和 ASERT
+作者: Dave Collins <davec@decred.org>
+状态: 活跃
+创建时间: 2023-04-13
+许可证: CC0-1.0
+许可证代码: ISC
+条件: DCP0001, DCP0005, DCP0006, DCP0010
+</pre>
+
+==概述==
+
+对 Decred 工作量证明 (PoW) 的修改如下:
+
+* 将区块哈希与 PoW 哈希分开
+* 切换到 <code>BLAKE3</code> 的 PoW 哈希算法
+* 激活后重置挖矿所需的目标难度
+* 更改为响应速度更快的难度调整算法 ASERT
+
+==动机==
+
+该提案是在DCP0010之前的区块奖励分配变更后继续分析的结果，表明大部分PoW算力仍然高度中心化。
+
+提案对哈希算法更改为<code>BLAKE3</code>旨在消除上述问题，并通过淘汰专用挖矿硬件（ASIC）来进一步改善发行过程的去中心化。
+
+===区块哈希与 PoW 哈希===
+
+区块哈希目前具有多种功能。与该提案相关的一些重要功能是:
+
+* 它充当每个区块的唯一标识符
+* 它提交区块中的所有信息以确保不变性
+* 它将每个区块与前一个区块联系起来，从而形成区块链
+* 它作用于强加 PoW 要求的哈希值
+
+更改 PoW 的新哈希算法必然意味着将生成不同的哈希值。
+
+鉴于此，使用不同的哈希替区块哈希来强加 PoW 要求，允许独立更改哈希算法，而不会影响依赖<code>BLAKE-256 r14</code>生成的区块哈希的任何其它功能。
+
+===重置网络目标难度===
+
+当前所需的目标难度是基于上述专用硬件的存在，因此在新的哈希算法下对于非专用硬件来说明显太难了。因此，在转向新的哈希算法时，所需的目标难度也需要重置为低得多的初始值。
+
+===难度调整算法===
+
+PoW 的一个重要方面是随着挖矿算力的变化保持目标平均区块时间。这是通过难度调整算法 (DAA) 动态改变所需难度来实现的。
+
+Decred 自推出以来使用的算法基于指数移动平均线 (EMA)，并且在维持目标区块时间方面做得相当好。具体而言，在截至撰写本文时超过 7 年的运行中，主网的平均出块时间为预期的平均时间 5 分钟，而网络仅比完美的理想计划晚了约 8.5 小时。
+
+然而，在此提案之前的 DAA 仅每隔一段时间更新一次目标难度（主网络上的 144 个区块），因此当网络主要由 GPU（而不是 ASIC）挖矿时，它会稍微容易受到一些不良行为的影响。
+
+最现实的案例之一与“肇事逃逸”挖矿有关。简而言之，它涉及矿工利用不同区块链实施的各种 DAA 的弱点，通过不断地在受影响的区块链之间切换算力，以获得比稳定挖矿更高的盈利能力。由于它通常很有效，因此许多流行的现代挖矿软件会自动尝试利用该技术来最大化盈利能力。反过来，这种行为可能会导致受影响区块链的哈希算力出现极大的波动。（类似于机枪池）
+
+该行为可能导致对整个网络造成有害的后果，例如：
+
+* 延长交易确认时间
+* 维持网络运行的其余稳定矿工的盈利能力下降
+* 雪球效应使剩下的稳定矿工要么被迫效仿，要么完全停止挖矿，进一步加剧了情况
+
+提案中的 ASERT DAA 通过提高响应能力并避免其他一些次要边缘条件（例如矿工可能试图利用错误累积和削波来获得不公平优势）来进一步强化网络，以防止此类不良行为。与 EMA DAA 相比，该算法还具有实现更简单、计算更高效的优点。
+
+最后，值得注意的是，Decred 的 EMA DAA 是 ASERT 算法的相对版本的近似。换句话说，该算法是具有经过验证的微改进版本。
+
+==规格==
+
+===整数数学===
+
+为了促进跨实现和语言的更好兼容性，本规范定义的各种公式使用整数数学而不是浮点数学，如使用截断整数部分 (Int) 和下限<ref>[[https://en.wikipedia.org/wiki/Floor_and_ceiling_functions|Wikipedia: Floor and ceiling functions]]</ref>函数所示 。这对于共识代码来说是非常理想的，因为由于舍入错误和各自库中的不确定性等问题，浮点数学可能会在不同语言之间出现问题。
+
+===工作量证明哈希===
+
+从本规范开始，必须引入与区块哈希不同的新 PoW 哈希，并且区块哈希必须保持与本规范之前的相同。也就是说，区块哈希必须使用<code>BLAKE-256 r14</code>继续提交到区块头字段。
+
+新的 PoW 哈希还必须使用与<code>BLAKE3</code>区块哈希完全相同的区块头数据序列化来提交区块头的所有字段。
+
+此外，除了 [[#proof-of-work-enforcement|PoW 执行]]部分中明确详细说明的修改之外，所有涉及区块哈希的共识规则都必须保留。
+
+两个哈希值的序列化数据如下：
+
+<img src="block_header_serialization.svg" width="100%" height="341" />
+
+{|
+!从零开始的缓冲区偏移!!字节数!!名称!!数据类型!!记录
+|-
+|0||4||Block Version||int32||Little endian.
+|-
+|4||32||Previous Block Header Hash||[32]byte
+|Internal byte order.  The <code>BLAKE-256</code> hash of the previous block
+header.  This is '''NOT''' the <code>BLAKE3</code> PoW hash this specification
+introduces.
+|-
+|36||32||Merkle Root Hash||[32]byte
+|Internal byte order.  At the time of this specification, this is the
+[[../dcp-0005/dcp-0005.mediawiki#combined-transaction-tree-merkle-root|combined transaction tree merkle root]]
+as defined in DCP0005.
+|-
+|68||32||Commitment Root Hash||[32]byte
+|Internal byte order.  At the time of this specification, this is the
+[[../dcp-0005/dcp-0005.mediawiki#version-1-block-header-commitment|version 1 block header commitment root hash]]
+as defined in DCP0005.
+|-
+|100||2||Vote Bits||uint16||Little endian.
+|-
+|102||6||Final State||[6]byte||Internal byte order.
+|-
+|108||2||Num Voters||uint16||Little endian.
+|-
+|110||1||Fresh Stake||uint8||
+|-
+|111||1||Num Revocations||uint8||
+|-
+|112||4||Pool Size||uint32||Little endian.
+|-
+|116||4||Difficulty Bits||uint32
+|Little endian.
+[[#difficulty-bits-format|Difficulty Bits Format]].
+|-
+|120||8||Stake Difficulty||int64||Little endian.  At the time of this
+specification, this is the result of the
+[[../dcp-0001/dcp-0001.mediawiki#stake-difficulty-formulas|stake difficulty formulas]]
+as defined in DCP0001.
+|-
+|128||4||Block Height||uint32||Little endian.
+|-
+|132||4||Block Size||uint32||Little endian.
+|-
+|136||4||Block Timestamp||uint32||Little endian.
+|-
+|140||36||Extra Data||[36]byte
+|Internal byte order.  Implementations MUST treat this field as a binary blob
+and serialize it unaltered.
+<br /><br />
+Note that it is common for implementations to define separate fields with their
+internal block header data structures that split this space up in order to
+facilitate the mining process.
+<br /><br />
+For example, for legacy reasons, the first 4 bytes are often a separate
+<code>Nonce</code> field treated as a little-endian uint32 in the data
+structures with the remaining 32 bytes denominated as the <code>ExtraData</code>
+field.
+<br /><br />
+Miners and pools may allocate this space in whatever manner is the most
+efficient for them.  However, it is '''HIGHLY''' recommended to use the first 8
+bytes as the nonce for each individual miner, the next 4 bytes for the pool
+nonce, and set the remaining bytes to all zero.
+<br /><br />
+This recommendation allows pools to support up to 2<sup>32</sup> devices each
+capable of hash rates up to around 18.4 EH/s (18.4x10<sup>18</sup> hashes/sec).
+|-
+|176||4||Stake Version||uint32||Little endian
+|}
+
+===比特难度格式===
+
+当在每个标头的难度位字段中指定时，目标难度阈值必须保留现有的比特难度格式。
+
+比特难度格式是用无符号 32 位整数表示目标难度的最高有效位。该表示法类似于 IEEE754 浮点<ref>[[https://en.wikipedia.org/wiki/IEEE_754|Wikipedia: IEEE754]]</ref>。
+
+与 IEEE754 浮点一样，也有三个基本组成部分：符号、指数和尾数（也称为有效数）。它们按照以下图表和规格进行细分：
+
+<!--E(T) = \begin{cases}0 & \text{if } T = 0 \\2^{24}\cdot exponent + mantissa & \text{if } T \gt 0 \\2^{24}\cdot exponent + 2^{23} + mantissa & \text{if } T \lt 0\end{cases}-->
+<!--exponent = \left\lfloor log_{256}(2 \cdot |T|) \right\rfloor + 1-->
+<!--mantissa = \left\lfloor |T| \cdot 256^{3-exponent} \right\rfloor-->
+<!--T = (-1)^{sign} \cdot \left\lfloor mantissa \cdot 256^{exponent - 3} \right\rfloor-->
+<img src="difficulty_bits_breakdown.svg" width="100%" height="534" />
+
+{|
+!比特难度!!描述
+|-
+|0-22|||Mantissa (Significand).  The most significant bits.  A bitmask of
+0x007fffff may be applied to extract this value.
+|-
+|23||Sign bit.  The encoded value MUST be interpreted as negative when this bit
+is set.
+|-
+|24-31||Exponent.  The base 256 exponent plus 3.
+|}
+
+====实施警告====
+
+提供的编码公式精确地指定了所需的计算，但是，由于实现对数库中的舍入误差和精度限制，大多数编程语言在直接实现公式时不会为所有值生成正确的结果<sup>[ [[#typical-logarithm-precision-limitations|详细信息]] ]</sup>。
+
+因此，强烈建议使用其余部分概述的算法来执行编码和解码，而不是尝试直接实现公式。提供的算法通过整数数学、模算术、位移位和位掩码的组合来实现公式，所有这些都会产生精确的结果并且具有高度可移植性。
+
+====精度考虑因素====
+
+以下算法依赖于任意精度整数，以支持对可编码的全部可能值进行解码。
+
+然而，实际上，Decred 中的所有目标困难都强制为无符号 256 位整数。
+
+因此，实现可以选择使用无符号 256 位整数，只要它们在解码时正确检测并拒绝负数或大于 2<sup>256</sup> - 1（无符号 256 位整数可表示的最大值）的编码值。
+
+====解码算法====
+
+以下算法将使用尾数和指数 的中间变量<code>T</code>从难度位解码目标难度：<code>c</code><code>m</code><code>x</code> 
+
+# 设置<code>m = c (mod 2^23)</code>为最低有效 23 位<code>c</code>
+#: 实现可以通过使用位掩码来优化它：<code>m = c & 0x007fffff</code>
+# 设置<code>x = floor(c / 2^24)</code>为最高有效 8 位<code>c</code>
+#: 实现可以通过使用右位移位来优化这一点：<code>x = c >> 24</code>
+# 如果<code>x ≤ 3</code> 则设置<code>T = m / 256^(3 - x)</code>否则设置<code>T = m * 256^(x - 3)</code>
+#: 实现可以<code>x ≤ 3</code>通过使用右位移位来优化情况：<code>T = m >> (8 * (3-x))</code>以及<code>x > 3</code>通过使用左位移位来优化情况： <code>T = m << (8 * (x-3))</code>
+#: 注意：Ensure <code>T</code>能够处理最大支持的可解码值的大整数（支持整个范围时为± 8,388,607 x 2<sup>2016</sup> ，如果仅支持无符号 256 位整数则为2<sup>256</sup> - 1）
+# <code>c</code>如果设置了位 23则返回<code>-T</code，否则返回<code>T</code>
+
+====编码算法====
+
+以下算法将使用尾数和指数的 中间变量将目标难度编码<code>T</code>为难度位：<code>c</code><code>m</code><code>x</code> 
+
+
+# OPTIONAL:Assert <code>T ≥ 0</code> 和 <code>T ≤ 2^256 - 1</code>
+#: 实现可以选择断言输入值是非负的，并且小于或等于无符号 256 位整数表示的最大值，因为超出该范围的目标难度在 Decred 中是无效的
+# 如果 <code>T = 0</code> 则返回 <code>0</code>
+# 设置 <code>b = bitlen(T)</code> 其中 <code>bitlen</code> 是一个函数，返回表示二进制值所需的位数
+# 设置 <code>x = floor((b + 7) / 8)</code>
+# 如果 <code>x ≤ 3</code> 则设置 <code>m = abs(T) * 256^(3 - x)</code> 否则设置 <code>m = floor(abs(T) / 256^(x - 3))</code>
+#: 如果实现了断言输入值非负的可选第一步，则实现可以省略取绝对值
+#: 实现可以 <code>x ≤ 3</code> 通过使用左位移位来优化情况： <code>m = abs(T) << (8 * (3-x))</code> 以及 <code>x > 3</code> 通过使用右位移位来优化情况： <code>m = abs(T) >> (8 * (x-3))</code>
+#  <code>m</code> 如果设置了位 23 则设置 <code>m = floor(m / 256)</code> 并设置 <code>x = x + 1</code>
+#: 实现可以通过使用右位移位来优化这一点： <code>m = m >> 8</code>
+# 设置 <code>c = (x * 2^24) + m</code>
+#: 实现可以通过使用左移位和按位或来优化这一点： <code>c = (x << 24) | m</code>
+# 如果 <code>T < 0</code> 则设置 <code>c = c + 2^23</code> 设置符号位
+#: 如果实现了断言输入值非负的可选第一步，则实现可以省略此步骤
+#: 实现可以通过使用位掩码的按位或来优化这一点： <code>c = c | 0x00800000</code>
+# 返回 <code>c</code>
+
+===ASERT难度调整算法===
+
+该规范提出了一种新的难度调整算法（DAA），名为 ASERT（绝对调度指数上升目标）。
+
+====ASERT 难度计算间隔====
+
+必须使用新的 ASERT 算法计算每个块所需的目标难度。
+
+请注意，每个块的计算要求与 DAA 在本规范之前强制执行的定期计算要求不同。
+
+
+====ASERT 锚定块====
+
+所有目标难度计算必须相对于如下确定的锚定块来执行：
+
+* 对于主网和测试网版本3：
+** 锚定定区块必须设置为新规则生效区块之前的一个区块
+* 对于从一开始就使用所提出的算法的其它网络：
+** 锚定块一旦被开采就必须设置为块 1
+** 区块 1 的目标难度必须设置为网络的初始难度
+
+更新：
+
+现该提案在主网和测试网第3版的议程投票均已通过，新规则已生效，其具体锚定区块已确定如下：
+
+{|
+!网络!!区块哈希!!区块高度
+|-
+|主网||0000000000000000c293d8c67409d05e960447ea25cdaf770e864d995c764ef0||794367
+|-
+|测试网版本 3||000000b396bfeaa6ae6fa9e3cee441d7215191630bdaa9b979a872985caed727||1170047
+|}
+
+为了简单起见，实现可以对这些值进行硬编码。
+
+====ASERT难度计算公式====
+
+<!--
+T_{N} = \mathrm{min}\left(\mathrm{max}\left(\left\lfloor T_{s} \cdot F \cdot 2^{n-16}\right\rfloor, 1\right), T_{ub}\right)
+x = \rm{Int}\left(\frac{2^{16}(\Delta t - \Delta h \cdot I_{b})}{\tau}\right)
+n = \left\lfloor\frac{x}{2^{16}}\right\rfloor
+f = x\bmod{2^{16}}
+F = 2^{16} + \left\lfloor\frac{195766423245049f + 971821376f^{2} +5127f^{3} + 2^{47}}{2^{48}}\right\rfloor
+-->
+<img src="asert.svg" width="100%" height="379" />
+
+术语解释：
+
+T<sub>N</sub> = 给定高度下的目标难度 N<br />
+T<sub>s</sub> = 初始启动难度<br />
+Δt = 最近区块与锚定块之间的时间增量（以秒为单位）<br />
+Δh = 最近区块与锚定块之间的高度增量<br />
+I<sub>b</sub> = 目标块间隔以秒为单位<br />
+T<sub>ub</sub> = 最终计算目标难度的上限（工作量证明限制）<br />
+𝜏 = 半衰期以秒为单位
+
+必须使用以下每个网络值进行计算：
+
+{|
+!范围!!主网值!!测试网 (版本 3) 值
+|-
+|T<sub>s</sub>||42,406 x 2<sup>192</sup>||65,535 x 2<sup>216</sup>
+|-
+|I<sub>b</sub>||300||120
+|-
+|T<sub>ub</sub>||2<sup>224</sup> - 1||2<sup>232</sup> - 1
+|-
+|𝜏||43,200||720
+|}
+
+重要的实施注意事项：
+
+*  由于锚定块选择所施加的限制，负高度增量(<code>Δh</code>)在正确的实现中是不可能的
+** 实现可以为此前提条件添加断言
+* <code>Int</code> 计算指数时使用的函数 (<code>x</code>)表示值的整数部分，这意味着向 0 截 
+** 请注意，这与下取整函数不同，下取整函数将负值截断为负无穷大
+** 实现必须确保此计算截断为 0
+* 指数 (<code>f</code>)的小数部分  (<code>x</code>)  预计会标准化为范围 [0,2<sup>16</sup> )，这是模运算符的标准行为
+** 实现可以通过使用掩码 0xffff 执行按位 AND 来优化计算
+* 指数 (<code>n</code>) 的整数部分 (<code>x</code>) 是向下除法，对于负值会向负无穷大截断
+** 实现可以通过使用算术<ref>[[https://en.wikipedia.org/wiki/Arithmetic_shift|Wikipedia: Arithmetic shift]]</ref>右移 16 来优化计算
+*** 警告: 此计算的逻辑<ref>[[https://en.wikipedia.org/wiki/Logical_shift|Wikipedia: Logical shift]]</ref>右移不会为所有输入产生正确的结果
+* 对于分数因子的计算<code>F</code>:
+** 由于范围的缘故，地板内的分子保证为正值<code>f</code>
+** 地板内部的分子需要全64位以避免溢出
+** 实现可以通过使用右移 48 来优化地板除法 2 <sup>48</sup> 
+** 总体结果保证最大为 17 位
+*实现可以通过在 n ≥ 16 时使用左移 n-16 或在 n < 16 时右移 16-n 来优化最终下底目标难度计算中的乘法 2<sup>n-16</sup> 
+
+===工作量证明执行===
+
+本节使用术语'''目标难度'''来指代具体的数值，使用'''难度位'''来指代 目标难度的[[#difficulty-bits-format|编码紧凑形式]]。
+
+必须执行以下难度规则：
+
+* 通过解码块头中的难度位获得的目标难度必须大于零
+* 通过解码块头中的难度位获得的目标难度必须小于或等于活动网络的工作量证明限制：
+** <code>主网</code>: 2<sup>224</sup> - 1
+** <code>测试网版本 3</code>: 2<sup>232</sup> - 1
+* 块头中的难度位必须与通过将ASERT 难度计算公式计算出的目标难度编码为紧凑形式而获得的预期难度位相匹配
+** 注意：将编码的难度位与解码的目标难度值进行比较非常重要，因为难度位编码格式会截断目标难度中除最高有效位之外的所有位
+
+以下规则必须转换为使用本规范引入的新PoW 哈希，而不是区块哈希：
+
+* PoW 哈希必须被视为小端无符号 256 位整数，并且小于或等于通过解码块头中的难度位获得的目标难度
+
+==基本原理==
+
+===位格式保留难度===
+
+难度位格式是从遗留代码继承的，在很多方面都不太理想。例如，由于只需要对无符号 256 位整数的目标困难进行编码，因此实际上不需要符号位，并且它的存在只会使实践中的编码和解码变得复杂。
+
+该提案强烈考虑了更改格式，但是，尽管有缺点，继承的格式仍被保留，以减少生态系统中软件需要处理的更改范围。
+
+===典型的对数精度限制===
+
+许多语言使用 64 位浮点值实现对数，但仅提供 53 位有效位数的精度。这意味着不可能完全表示任何具有超过 15 到 17 位有效十进制数字的值（具体取决于指数）。
+
+例如，考虑值 2<sup>55</sup> - 1 = 36,028,797,018,963,967。将其转换为 64 位浮点数，然后再转换回无符号 64 位整数，将得到 36,028,797,018,963,968，而不是原始值。
+
+当直接实现涉及对数的公式时，这种精度损失可能会导致结果不准确。
+
+具体来说，考虑难度位格式部分中提供的计算指数的公式， 该公式涉及以 256 为底的对数。以下 Python 代码直接通过公式计算上述值 2 55 - 1 的指数，结果生成错误的指数 8，而不是预期的正确值 7：
+
+<source lang="python">
+import math
+def calcExponent(n):
+ # WARNING: Incorrect implementation!
+ return math.floor(math.log(2 * n) / math.log(256)) + 1
+
+print(calcExponent(2**55 - 1)) # WARNING: Incorrect result!
+</source>
+
+因此，强烈鼓励共识代码的实现避免直接涉及对数的公式，除非它们能够完全保证输入域中所有可能值的正确结果。
+
+===ASERT算法推导===
+
+本提案中指定的 ASERT 算法是理想指数方程的近似：
+
+<!--T_{N} = \mathrm{min}\left(\mathrm{max}\left(T_{s} \cdot \mathrm{e}^{\frac{\Delta t - \Delta h \cdot I_{b}}{\tau}}, 1\right), T_{ub}\right)-->
+<img src="asert_ideal.svg" width="100%" height="55" />
+
+有关术语的解释， 请参阅[[#asert-difficulty-calculation-formula|规范部分]]。
+
+然而，由于<code>e</code><ref>[[https://en.wikipedia.org/wiki/E_(mathematical_constant)|Wikipedia: e (mathmetical constant)]]</ref>是一个超越数，共识代码中使用的任何计算都必须选择明确定义的近似值才能获得可重现的结果。理想情况下，近似值应该是整数以避免浮点数学。虽然 3 是最接近的整数近似值，但计算机在使用 2 的幂进行计算时特别高效，因此推导从近似e为 2 开始，从而得出目标方程：
+
+<!--T_{N} = \mathrm{min}\left(\mathrm{max}\left(T_{s} \cdot 2^{\frac{\Delta t - \Delta h \cdot I_{b}}{\tau}}, 1\right), T_{ub}\right)-->
+<img src="asert_goal.svg" width="100%" height="55" />
+
+请注意，目标方程涉及分数指数，出于同样的原因，同样需要选择明确定义的近似值。简单地对指数进行舍入或截断会产生近似值，从而引入比预期更多的误差。相反，推导中的后续步骤将公式重新转换为近似值，该近似值使用定点整数算术<ref>[[https://en.wikipedia.org/wiki/Fixed-point_arithmetic|Wikipedia: Fixed-point arithmetic]]</ref>和 2 <sup>x</sup>项 的三次多项式近似值的组合。
+
+定点整数运算的比例因子选择为 2<sup>16</sup> (x.16 定点)。这种选择的主要动机是，它提供了足够的精度，以避免引入超过难度位格式产生的 2<sup>-15</sup>误差 的任何额外误差，并且它也是 2 的幂，使得通过位移位进行计算变得高效。使用该比例因子应用定点修改会产生：
+
+<!--T_{N} \approx \mathrm{min}\left(\mathrm{max}\left(\left\lfloor\frac{\left\lfloor2^{16} \cdot T_{s} \cdot 2^{\frac{\Delta t - \Delta h \cdot I_{b}}{\tau}}\right\rfloor}{2^{16}}\right\rfloor, 1\right), T_{ub}\right)-->
+<img src="asert_scaled.svg" width="100%" height="119" />
+
+转向 2<sup>x</sup>项的计算，在 0 ≤ x < 1 区间内 2<sup>x</sup>的良好目标近似是三次多项式：
+
+<!--2^{x} \approx 1 + 0.695502049712533x + 0.2262697964x^{2} + 0.0782318x^{3}-->
+<img src="asert_two_to_x_approx.svg" width="100%" height="29" />
+
+下面导出的这种近似的最终形式提供了 在上述 [0,1) 区间内 < 0.013% 的绝对误差范围，这远低于获得良好结果所需的 0.1% 误差范围。
+
+请记住，对于定点整数算术，整体计算已按 2<sup>16</sup>缩放，目标近似值 2<sup>x</sup>的缩放形式为：
+
+<!--2^{16} \cdot 2^x \approx 2^{16} + 2^{16} \cdot 0.695502049712533x + 2^{16} \cdot 0.2262697964x^2 + 2^{16} \cdot 0.0782318x^3-->
+<img src="asert_two_to_x_approx_scaled.svg" width="100%" height="29" />
+
+然而，为了在共识关键代码中使用目标近似，仍然需要处理一些事情：
+
+# 输入域不受有效区间 [0,1) 的限制
+# 指数不是整数，可以为负数
+# 目标近似公式涉及非整数系数
+
+为了获得正确的输入域，请注意指数规则 2<sup>n+f</sup> = 2<sup>n</sup> x 2<sup>f</sup>。利用这一事实，指数被分解为整数部分 n 和小数部分 f，使得 f 位于所需的 [0,1) 范围内。然后，通过将缩放的三次多项式近似应用于小数部分并乘以 2<sup>n</sup>来计算结果。
+
+为了使指数成为整数，它还被缩放 2<sup>16</sup>并通过定点整数算术计算。请注意，这意味着上述分解中的整数部分 n 和小数部分 f 也按 2<sup>16</sup>缩放。
+
+此外，由于指数可以为负数并且涉及除法，因此需要选择是向 0 舍入（截断）还是向负无穷大（下取整）舍入。为了方便起见，此实现选择截断除法，因为除法是按不是 2 的幂的项进行的，并且大多数编程语言都使用其内置运算符实现截断除法。另一方面，下限对于涉及 2 的幂的除法来说是首选，因为它可以通过算术移位来有效地计算，其行为与下限函数相同。
+
+考虑到所有因素，得到的近似指数和分解为：
+
+<!--x = \rm{Int}\left(\frac{2^{16}(\Delta t - \Delta h \cdot I_{b})}{\tau}\right)-->
+<!--n = \left\lfloor\frac{x}{2^{16}}\right\rfloor-->
+<!--f = x\bmod{2^{16}}-->
+<img src="asert_exponent_decomp.svg" width="100%" height="98" />
+
+将缩放小数部分代入缩放目标近似值 2<sup>x</sup>并除以引入的附加缩放因子，得到：
+
+<!--
+F \approx 2^{16} + \left\lfloor \frac{\lceil2^{48} \cdot 0.695502049712533f\rceil+ \lceil2^{32} \cdot 0.2262697964f^2\rceil + \lceil2^{16} \cdot 0.0782318f^3\rceil  + 2^{47}}{2^{48}}\right\rfloor
+F \approx 2^{16} + \left\lfloor \frac{195766423245049f + 971821376f^2 + 5127f^3 + 2^{47}}{2^{48}}\right\rfloor \\
+-->
+<img src="asert_fractional_substitution.svg" width="100%" height="141" />
+
+接下来，通过乘以剩余的缩放因子并取上限，将系数转换为整数。此外，还在底限内添加了额外的 2<sup>47</sup>项以进行四舍五入。这些修改的结果是：
+
+<!--
+F \approx 2^{16} + \left\lfloor \frac{\left\lceil2^{48} \cdot 0.695502049712533f\right\rceil+ \left\lceil2^{32} \cdot 0.2262697964f^2\right\rceil + \left\lceil2^{16} \cdot 0.0782318f^3\right\rceil  + 2^{47}}{2^{48}}\right\rfloor
+F \approx 2^{16} + \left\lfloor \frac{195766423245049f + 971821376f^2 + 5127f^3 + 2^{47}}{2^{48}}\right\rfloor
+-->
+<img src="asert_fractional_approx.svg" width="100%" height="170" />
+
+最后，将 2<sup>x</sup>近似的整数和小数部分代入目标方程的原始定点公式中，以计算目标难度，同时还观察到，通过指数规则 2<sup>n</sup> / 2<sup>16</sup> = 2<sup>n-16</sup>，得出规范中使用的最终形式：
+
+<!--T_{N} = \mathrm{min}\left(\mathrm{max}\left(\left\lfloor T_{s} \cdot F \cdot 2^{n-16}\right\rfloor, 1\right), T_{ub}\right)-->
+<img src="asert_final_form.svg" width="100%" height="37" />
+
+===ASERT 相对三次多项式近似误差===
+
+下图显示了本规范中使用的定点近似在 [0,1) 范围内相对 近似误差与 2<sup>x</sup>的关系：
+
+<img src="asert_rel_cubic_poly_approx_err_10k.svg" width="100%" height="748" />
+
+==模拟图==
+
+下图提供了使用具有主要网络参数的新算法模拟三个挖掘场景的结果的可视化。也就是说，这些场景中的每一个都涉及随机求解时间，这些时间遵循目标平均区块时间的泊松分布，以便模拟真实的挖掘行为。
+
+为每个场景提供了两个图表：
+
+* 每个块的难度比，以说明难度算法的行为和响应能力
+* 求解时间的直方图与理想泊松分布重叠，以说明模拟遵循所需的实际泊松分布
+
+这些场景以及其他几个场景也包含在 [[#asert-difficulty-calculations|ASERT 参考测试向量]]中。
+
+===场景：算力稳定===
+
+该场景通过将平均求解时间设定为 300 秒来模拟稳定的算力，该时间与主网络的实际目标平均出块时间相匹配。通过对每个区块进行细微调整，难度保持相当稳定，以维持所需的区块生产率。
+
+<img src="asert_stable.svg" width="100%" height="623" />
+
+===场景：算力快速提升===
+
+该场景通过将平均求解时间设定为 15 秒来模拟算力的快速增长，这比主网络的实际目标平均出块时间要快得多。为了将区块生产率降低回到期望的目标，难度迅速增加。
+
+<img src="asert_increasing.svg" width="100%" height="621" />
+
+===场景：算力快速下降===
+
+该场景通过将平均求解时间设定为 1000 秒来模拟算力的快速下降，该时间比主网络的实际目标平均出块时间慢得多。为了将区块生产率提高回预期目标，难度迅速降低。
+
+<img src="asert_decreasing.svg" width="100%" height="622" />
+
+==部署==
+
+===投票议程参数===
+
+该提案将使用标准 Decred 链上投票基础设施部署到主网，如下所示：
+
+
+{|
+!名称!!设置
+|-
+|部署版本||10
+|-
+|议程编号||blake3pow
+|-
+|议程说明||将工作量证明哈希算法更改为 DCP0011 中定义的 BLAKE3
+|-
+|开始时间||1682294400 (4月24日, 2023 00:00:00 +0000 UTC)
+|-
+|过期时间||1745452800 (4月24日, 2025 00:00:00 +0000 UTC)
+|-
+|Mask||0x0006 (Bits 1 和 2)
+|-
+|选择||{|
+!选择!!说明!!Bits
+|-
+|弃权||对变更投弃权票||0x00
+|-
+|否决||保留现有的共识规则||0x0002 (Bit 1)
+|-
+|支持||更改新的共识规则	||0x0004 (Bit 2)
+|}
+|}
+
+===投票结果===
+
+该提案已获得利益相关者投票程序的批准，现已生效。
+
+
+{|
+!位置!!区块哈希!!区块高度
+|-
+|投票开始||0000000000000000d608dc4ec7fcae5c650353db68a77f2954df74c25462f337||778240
+|-
+|投票锁定||0000000000000000896042b2b0536a4046e56ef505f20f7301ca7e042a5c218e||786304
+|-
+|激活||071683030010299ab13f139df59dc98d637957b766e47f8da6dd5ac762f1e8c7||794368
+|}
+
+==兼容性==
+
+这是对 Decred 共识的硬分叉改变。这意味着一旦议程被投票并被锁定，任何运行完全验证区块的代码的人都必须在激活时间之前升级，否则他们将拒绝所有新区块，因为他们的工作证明在旧规则下无效。
+
+执行完整验证的其他软件将需要相应地修改其共识执行规则，并且执行标头验证的任何软件（例如轻量级钱包和其他 SPV 客户端）将需要更新以处理此处指定的更改。
+
+==参考实现==
+
+以下实现是简化版本，旨在通过独立函数清楚地说明本规范的确切语义。请参阅[[#pull-requests|合并请求]]部分以获取完整实现的链接。
+
+===工作量证明哈希计算===
+
+<source lang="go">
+import (
+	"encoding/binary"
+	"lukechampine.com/blake3"
+)
+
+// putUint8 writes the passed uint8 to the provided slice and returns 1 to
+// signify the number of bytes written.  The target byte slice must be at least
+// large enough to handle the write or it will panic.
+func putUint8(buf []byte, val uint8) int {
+	buf[0] = val
+	return 1
+}
+
+// putUint16LE writes the provided uint16 as little endian to the provided slice
+// and returns 2 to signify the number of bytes written.  The target byte slice
+// must be at least large enough to handle the write or it will panic.
+func putUint16LE(buf []byte, val uint16) int {
+	binary.LittleEndian.PutUint16(buf, val)
+	return 2
+}
+
+// putUint32LE writes the provided uint32 as little endian to the provided slice
+// and returns 4 to signify the number of bytes written.  The target byte slice
+// must be at least large enough to handle the write or it will panic.
+func putUint32LE(buf []byte, val uint32) int {
+	binary.LittleEndian.PutUint32(buf, val)
+	return 4
+}
+
+// putUint64LE writes the provided uint64 as little endian to the provided slice
+// and returns 8 to signify the number of bytes written.  The target byte slice
+// must be at least large enough to handle the write or it will panic.
+func putUint64LE(buf []byte, val uint64) int {
+	binary.LittleEndian.PutUint64(buf, val)
+	return 8
+}
+
+// blake3PowHash computes the BLAKE3 proof of work hash for the given block
+// header fields.
+func blake3PowHash(version int32, prevBlockHash, merkleRoot,
+	commitmentRoot [32]byte, voteBits uint16, finalState [6]byte,
+	numVoters uint16, freshStake, revocations uint8, poolSize,
+	diffBits uint32, stakeDiff int64, blockHeight, blockSize uint32,
+	timestamp uint32, extraData [36]byte, stakeVersion uint32) [32]byte {
+
+	var target [180]byte
+	offset := putUint32LE(target[0:], uint32(version))
+	offset += copy(target[offset:], prevBlockHash[:])
+	offset += copy(target[offset:], merkleRoot[:])
+	offset += copy(target[offset:], commitmentRoot[:])
+	offset += putUint16LE(target[offset:], voteBits)
+	offset += copy(target[offset:], finalState[:])
+	offset += putUint16LE(target[offset:], numVoters)
+	offset += putUint8(target[offset:], freshStake)
+	offset += putUint8(target[offset:], revocations)
+	offset += putUint32LE(target[offset:], poolSize)
+	offset += putUint32LE(target[offset:], diffBits)
+	offset += putUint64LE(target[offset:], uint64(stakeDiff))
+	offset += putUint32LE(target[offset:], blockHeight)
+	offset += putUint32LE(target[offset:], blockSize)
+	offset += putUint32LE(target[offset:], timestamp)
+	offset += copy(target[offset:], extraData[:])
+	putUint32LE(target[offset:], stakeVersion)
+	return blake3.Sum256(target[:])
+}
+</source>
+
+===比特解码难度===
+
+<source lang="go">
+// diffBitsToBig converts the compact representation used to encode difficulty
+// targets to a big integer.  The representation is similar to IEEE754 floating
+// point numbers.
+//
+// Like IEEE754 floating point, there are three basic components: the sign,
+// the exponent, and the mantissa.  They are broken out as follows:
+//
+//  1. the most significant 8 bits represent the unsigned base 256 exponent
+//  2. zero-based bit 23 (the 24th bit) represents the sign bit
+//  3. the least significant 23 bits represent the mantissa
+//
+// Diagram:
+//
+//	-------------------------------------------------
+//	|   Exponent     |    Sign    |    Mantissa     |
+//	|-----------------------------------------------|
+//	| 8 bits [31-24] | 1 bit [23] | 23 bits [22-00] |
+//	-------------------------------------------------
+//
+// The formula to calculate the encoded difficulty target is:
+//
+//	T = (-1)^sign * floor(mantissa * 256^(exponent-3))
+func diffBitsToBig(bits uint32) *big.Int {
+	// Extract the mantissa, sign bit, and exponent.
+	mantissa := bits & 0x007fffff
+	isNegative := bits&0x00800000 != 0
+	exponent := uint(bits >> 24)
+
+	// Since the base for the exponent is 256, the exponent can be treated as
+	// the number of bytes to represent the full 256-bit number.  So, treat the
+	// exponent as the number of bytes and shift the mantissa right or left
+	// accordingly.  This is equivalent to:
+	// T = mantissa * 256^(exponent-3)
+	var bn *big.Int
+	if exponent <= 3 {
+		mantissa >>= 8 * (3 - exponent)
+		bn = big.NewInt(int64(mantissa))
+	} else {
+		bn = big.NewInt(int64(mantissa))
+		bn.Lsh(bn, 8*(exponent-3))
+	}
+
+	// Make it negative if the sign bit is set.
+	if isNegative {
+		bn = bn.Neg(bn)
+	}
+
+	return bn
+}
+</source>
+
+===比特难度编码===
+
+<source lang="go">
+// bigToDiffBits converts a big integer to the compact representation used to
+// encode difficulty targets as an unsigned 32-bit integer.  The compact
+// representation only provides 23 bits of precision, so values larger than
+// (2^23 - 1) only encode the most significant bits of the number.
+func bigToDiffBits(t *big.Int) uint32 {
+	// No need to do any work if it's zero.
+	if t.Sign() == 0 {
+		return 0
+	}
+
+	// Since the base for the exponent is 256, the exponent can be treated as
+	// the number of bytes.  So, shift the number right or left accordingly.
+	// This is equivalent to:
+	// mantissa = mantissa / 256^(exponent-3)
+	var mantissa uint32
+	exponent := uint(len(t.Bytes()))
+	if exponent <= 3 {
+		mantissa = uint32(t.Bits()[0])
+		mantissa <<= 8 * (3 - exponent)
+	} else {
+		// Use a copy to avoid modifying the caller's original number.
+		tt := new(big.Int).Set(t)
+		tt.Abs(tt)
+		mantissa = uint32(tt.Rsh(tt, 8*(exponent-3)).Bits()[0])
+	}
+
+	// When the mantissa already has the sign bit set, the number is too large
+	// to fit into the available 23-bits, so divide the number by 256 and
+	// increment the exponent accordingly.
+	if mantissa&0x00800000 != 0 {
+		mantissa >>= 8
+		exponent++
+	}
+
+	// Pack the exponent, sign bit, and mantissa into an unsigned 32-bit int and
+	// return it.
+	bits := uint32(exponent<<24) | mantissa
+	if t.Sign() < 0 {
+		bits |= 0x00800000
+	}
+	return bits
+}
+</source>
+
+===ASERT 难度计算===
+
+<source lang="go">
+// calcASERTDiff calculates a target difficulty for the given set of parameters
+// using the ASERT algorithm and returns that target encoded as difficulty bits.
+func calcASERTDiff(startDiffBits uint32, powLimit *big.Int, targetSecsPerBlock,
+	timeDelta, heightDelta, halfLife int64) uint32 {
+
+	// Ensure parameter assumptions are not violated.
+	//
+	// 1. The starting target difficulty must be in the range [1, powLimit]
+	// 2. The height to calculate the difficulty for must come after the height
+	//    of the reference block
+	startDiff := diffBitsToBig(startDiffBits)
+	if startDiff.Sign() <= 0 || startDiff.Cmp(powLimit) > 0 {
+		panic(fmt.Sprintf("starting difficulty %064x is not in the valid "+
+			"range [1, %064x]", startDiff, powLimit))
+	}
+	if heightDelta < 0 {
+		panic(fmt.Sprintf("provided height delta %d is negative", heightDelta))
+	}
+
+	// Calculate the target difficulty by multiplying the provided starting
+	// target difficulty by an exponential scaling factor that is determined
+	// based on how far ahead or behind the ideal schedule the given time delta
+	// is along with a half life that acts as a smoothing factor.
+	//
+	// Per DCP0011, the goal equation is:
+	//
+	//   nextDiff = min(max(startDiff * 2^((Δt - Δh*Ib)/halfLife), 1), powLimit)
+	//
+	// However, in order to avoid the need to perform floating point math which
+	// is problematic across languages due to uncertainty in floating point math
+	// libs, the formula is implemented using a combination of fixed-point
+	// integer arithmetic and a cubic polynomial approximation to the 2^x term.
+	//
+	// In particular, the goal cubic polynomial approximation over the interval
+	// 0 <= x < 1 is:
+	//
+	//   2^x ~= 1 + 0.695502049712533x + 0.2262697964x^2 + 0.0782318x^3
+	//
+	// This approximation provides an absolute error margin < 0.013% over the
+	// aforementioned interval of [0,1) which is well under the 0.1% error
+	// margin needed for good results.  Note that since the input domain is not
+	// constrained to that interval, the exponent is decomposed into an integer
+	// part, n, and a fractional part, f, such that f is in the desired range of
+	// [0,1).  By exponent rules 2^(n + f) = 2^n * 2^f, so the strategy is to
+	// calculate the result by applying the cubic polynomial approximation to
+	// the fractional part and using the fact that multiplying by 2^n is
+	// equivalent to an arithmetic left or right shift depending on the sign.
+	//
+	// In other words, start by calculating the exponent (x) using 64.16 fixed
+	// point and decompose it into integer (n) and fractional (f) parts as
+	// follows:
+	//
+	//       2^16 * (Δt - Δh*Ib)   (Δt - Δh*Ib) << 16
+	//   x = ------------------- = ------------------
+	//            halfLife              halfLife
+	//
+	//        x
+	//   n = ---- = x >> 16
+	//       2^16
+	//
+	//   f = x (mod 2^16) = x & 0xffff
+	//
+	// The use of 64.16 fixed point for the exponent means both the integer (n)
+	// and fractional (f) parts have an additional factor of 2^16.  Since the
+	// fractional part of the exponent is cubed in the polynomial approximation
+	// and (2^16)^3 = 2^48, the addition step in the approximation is internally
+	// performed using 16.48 fixed point to compensate.
+	//
+	// In other words, the fixed point formulation of the goal cubic polynomial
+	// approximation for the fractional part is:
+	//
+	//                 195766423245049*f + 971821376*f^2 + 5127*f^3 + 2^47
+	//   2^f ~= 2^16 + ---------------------------------------------------
+	//                                          2^48
+	//
+	// Finally, the final target difficulty is calculated using x.16 fixed point
+	// and then clamped to the valid range as follows:
+	//
+	//              startDiff * 2^f * 2^n
+	//   nextDiff = ---------------------
+	//                       2^16
+	//
+	//   nextDiff = min(max(nextDiff, 1), powLimit)
+	//
+	// NOTE: The division by the half life uses Quo instead of Div because it
+	// must be truncated division (which is truncated towards zero as Quo
+	// implements) as opposed to the Euclidean division that Div implements.
+	idealTimeDelta := heightDelta * targetSecsPerBlock
+	exponentBig := big.NewInt(timeDelta - idealTimeDelta)
+	exponentBig.Lsh(exponentBig, 16)
+	exponentBig.Quo(exponentBig, big.NewInt(halfLife))
+
+	// Decompose the exponent into integer and fractional parts.  Since the
+	// exponent is using 64.16 fixed point, the bottom 16 bits are the
+	// fractional part and the integer part is the exponent arithmetic right
+	// shifted by 16.
+	frac64 := uint64(exponentBig.Int64() & 0xffff)
+	shifts := exponentBig.Rsh(exponentBig, 16).Int64()
+
+	// Calculate 2^16 * 2^(fractional part) of the exponent.
+	//
+	// Note that a full unsigned 64-bit type is required to avoid overflow in
+	// the internal 16.48 fixed point calculation.  Also, the overall result is
+	// guaranteed to be positive and a maximum of 17 bits, so it is safe to cast
+	// to a uint32.
+	const (
+		polyCoeff1 uint64 = 195766423245049 // ceil(0.695502049712533 * 2^48)
+		polyCoeff2 uint64 = 971821376       // ceil(0.2262697964 * 2^32)
+		polyCoeff3 uint64 = 5127            // ceil(0.0782318 * 2^16)
+	)
+	fracFactor := uint32(1<<16 + (polyCoeff1*frac64+
+		polyCoeff2*frac64*frac64+
+		polyCoeff3*frac64*frac64*frac64+
+		1<<47)>>48)
+
+	// Calculate the target difficulty per the previous discussion:
+	//
+	//              startDiff * 2^f * 2^n
+	//   nextDiff = ---------------------
+	//                       2^16
+	//
+	// Note that by exponent rules 2^n / 2^16 = 2^(n - 16).  This takes
+	// advantage of that property to reduce the multiplication by 2^n and
+	// division by 2^16 to a single shift.
+	//
+	// This approach also has the benefit of lowering the maximum magnitude
+	// relative to what would be the case when first left shifting by a larger
+	// value and then right shifting after.  Since arbitrary precision integers
+	// are used for this implementation, it doesn't make any difference from a
+	// correctness standpoint, however, it does potentially lower the amount of
+	// memory for the arbitrary precision type and can be used to help prevent
+	// overflow in implementations that use fixed precision types.
+	nextDiff := new(big.Int).Set(startDiff)
+	nextDiff.Mul(nextDiff, big.NewInt(int64(fracFactor)))
+	shifts -= 16
+	if shifts >= 0 {
+		nextDiff.Lsh(nextDiff, uint(shifts))
+	} else {
+		nextDiff.Rsh(nextDiff, uint(-shifts))
+	}
+
+	// Limit the target difficulty to the valid hardest and easiest values.
+	// The valid range is [1, powLimit].
+	if nextDiff.Sign() == 0 {
+		// The hardest valid target difficulty is 1 since it would be impossible
+		// to find a non-negative integer less than 0.
+		nextDiff.SetInt64(1)
+	} else if nextDiff.Cmp(powLimit) > 0 {
+		nextDiff.Set(powLimit)
+	}
+
+	// Convert the difficulty to the compact representation and return it.
+	return bigToDiffBits(nextDiff)
+}
+</source>
+
+===合并请求===
+
+====部署====
+
+所需议程定义的参考实现是通过[[https://github.com/decred/dcrd/pull/3089|pull request #3089]]实现.
+
+====共识执行和投票====
+
+[[https://github.com/decred/dcrd/pull/3115|pull request #3115]]提供了执行本提案中指定的更改所需的共识更改的参考实现 。.
+
+==测试载体==
+
+提供以下测试向量是为了促进跨实现的测试。
+
+测试向量均以 JSON 形式提供，以便实现可以轻松复制它们并以编程方式解析它们以避免转置错误。
+
+===BLAKE3 工作哈希证明===
+
+用于 BLAKE3 工作量证明计算的 JSON 测试向量可在 [[blake3_powhash_test_vectors.json]].中找到。
+
+测试数据由一系列块头字段组成，用于序列化以构建 BLAKE3 工作证明哈希值以及预期哈希值。为了方便起见，它还提供了预期的序列化原像，因此如果实现没有获得预期的 PoW 哈希，则可以交叉检查哈希函数的预期输入。
+
+最后，顶部附近提供了注释，描述了每个字段的格式。
+
+以下示例 Go 代码提供了一个测试函数，用于加载和解析文件、执行所有测试并验证结果：
+
+<source lang="go">
+func blake3PowHash(version int32, prevBlockHash, merkleRoot,
+	commitmentRoot [32]byte, voteBits uint16, finalState [6]byte,
+	numVoters uint16, freshStake, revocations uint8, poolSize,
+	diffBits uint32, stakeDiff int64, blockHeight, blockSize uint32,
+	timestamp uint32, extraData [36]byte, stakeVersion uint32) [32]byte {
+
+	// Your implementation...
+	return [32]byte{}
+}
+
+func TestPoWHash(t *testing.T) {
+	// Read and parse the reference test vectors.
+	f, err := os.ReadFile("blake3_powhash_test_vectors.json")
+	if err != nil {
+		t.Fatalf("failed to read test vectors: %v", err)
+	}
+	var testData struct {
+		Comments []string `json:"comments"`
+		Tests    []struct {
+			Version        int32  `json:"version"`
+			PrevHash       string `json:"prevHash"`
+			MerkleRoot     string `json:"merkleRoot"`
+			CommitmentRoot string `json:"commitmentRoot"`
+			VoteBits       uint16 `json:"voteBits"`
+			FinalState     string `json:"finalState"`
+			NumVoters      uint16 `json:"numVoters"`
+			FreshStake     uint8  `json:"freshStake"`
+			Revocations    uint8  `json:"revocations"`
+			PoolSize       uint32 `json:"poolSize"`
+			DiffBits       uint32 `json:"diffBits"`
+			StakeDiff      int64  `json:"stakeDiff"`
+			BlockHeight    uint32 `json:"blockHeight"`
+			BlockSize      uint32 `json:"blockSize"`
+			Timestamp      uint32 `json:"timestamp"`
+			ExtraData      string `json:"extraData"`
+			StakeVersion   uint32 `json:"stakeVersion"`
+			Serialized     string `json:"serialized"`
+			PowHash        string `json:"powHash"`
+		} `json:"tests"`
+	}
+	err = json.Unmarshal(f, &testData)
+	if err != nil {
+		t.Fatalf("parse failed: %v", err)
+	}
+
+	// Define a couple of convenience methods for parsing the hex-encoded data
+	// and hashes.
+	parseHex := func(data string) []byte {
+		t.Helper()
+
+		decoded, err := hex.DecodeString(data)
+		if err != nil {
+			t.Fatalf("unable to parse test data: %v", err)
+		}
+		return decoded
+	}
+	parseHash := func(data string) [32]byte {
+		t.Helper()
+
+		const hashSize = 32
+		hash := parseHex(data)
+		if len(hash) != hashSize {
+			t.Fatalf("invalid hash len -- got %d, want %d", len(hash), hashSize)
+		}
+
+		// Reverse the hash so it matches the raw bytes that are produced by the
+		// hash func.
+		var reversed [hashSize]byte
+		for i := 0; i < hashSize/2; i++ {
+			reversed[i], reversed[hashSize-1-i] = hash[hashSize-1-i], hash[i]
+		}
+		return reversed
+	}
+	for i, test := range testData.Tests {
+		// Ensure the test data for the serialized header actually produces the
+		// provided pow hash.
+		hashFromInput := blake3.Sum256(parseHex(test.Serialized))
+		wantPowHash := parseHash(test.PowHash)
+		if hashFromInput != wantPowHash {
+			t.Fatalf("bad test data: provided input to the hash func does "+
+				"not hash to the provided pow hash -- got: %x, want: %x",
+				hashFromInput, wantPowHash)
+		}
+
+		gotHash := blake3PowHash(test.Version, parseHash(test.PrevHash),
+			parseHash(test.MerkleRoot), parseHash(test.CommitmentRoot),
+			test.VoteBits, *(*[6]byte)(parseHex(test.FinalState)),
+			test.NumVoters, test.FreshStake, test.Revocations, test.PoolSize,
+			test.DiffBits, test.StakeDiff, test.BlockHeight, test.BlockSize,
+			test.Timestamp, *(*[36]byte)(parseHex(test.ExtraData)),
+			test.StakeVersion)
+		if gotHash != wantPowHash {
+			t.Fatalf("test #%d: did not get expected proof of work hash -- "+
+				"got: %x, want: %x", i, gotHash, wantPowHash)
+		}
+	}
+}
+</source>
+
+===ASERT 难度计算===
+
+ASERT 难度算法的 JSON 测试向量可在[[asert_test_vectors.json]].中找到。
+
+测试数据由各种场景组成，其中包括一组参数、起始条件以及与这些起始条件相关的一系列区块高度和时间戳，以及它们的预期结果难度位。测试数据在顶部附近还有注释，描述每个字段的格式。
+
+以下示例 Go 代码提供了一个测试函数，用于加载和解析文件、执行所有测试并验证结果：
+
+<source lang="go">
+func calcASERTDiff(startDiffBits uint32, powLimit *big.Int, targetSecsPerBlock,
+	timeDelta, heightDelta, halfLife int64) uint32) {
+
+	// Your implementation...
+	return 0
+}
+
+func TestCalcASERTDiff(t *testing.T) {
+	// Read and parse the reference test vectors.
+	f, err := os.ReadFile("asert_test_vectors.json")
+	if err != nil {
+		t.Fatalf("failed to read test vectors: %v", err)
+	}
+	var testData struct {
+		Comments []string `json:"comments"`
+		Params   map[string]struct {
+			PowLimit           string `json:"powLimit"`
+			PowLimitBits       uint32 `json:"powLimitBits"`
+			TargetSecsPerBlock int64  `json:"targetSecsPerBlock"`
+			HalfLifeSecs       int64  `json:"halfLifeSecs"`
+		} `json:"params"`
+		Scenarios []struct {
+			Desc          string `json:"description"`
+			Params        string `json:"params"`
+			StartDiffBits uint32 `json:"startDiffBits"`
+			StartHeight   int64  `json:"startHeight"`
+			StartTime     int64  `json:"startTime"`
+			Tests         []struct {
+				Height           uint64 `json:"height"`
+				Timestamp        int64  `json:"timestamp"`
+				ExpectedDiffBits uint32 `json:"expectedDiffBits"`
+			} `json:"tests"`
+		} `json:"scenarios"`
+	}
+	err = json.Unmarshal(f, &testData)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, scenario := range testData.Scenarios {
+		// Lookup the associated network parameters and parse the proof of work
+		// limit hexadecimal to a uint256.
+		paramsKey := scenario.Params
+		params, ok := testData.Params[paramsKey]
+		if !ok {
+			t.Errorf("%q: bad network params key %q", scenario.Desc, paramsKey)
+			continue
+		}
+		powLimit, ok := new(big.Int).SetString(params.PowLimit, 16)
+		if !ok {
+			t.Errorf("%q: malformed pow limit %q", paramsKey, params.PowLimit)
+			continue
+		}
+
+		for _, test := range scenario.Tests {
+			// Calculate the time and height deltas from the test data.
+			heightDelta := int64(test.Height - uint64(scenario.StartHeight))
+			timeDelta := test.Timestamp - scenario.StartTime
+
+			// Ensure the calculated difficulty matches the expected result.
+			gotDiff := calcASERTDiff(scenario.StartDiffBits, powLimit,
+				params.TargetSecsPerBlock, timeDelta, heightDelta,
+				params.HalfLifeSecs)
+			if gotDiff != test.ExpectedDiffBits {
+				t.Errorf("%q@height %d: did not get expected difficulty bits "+
+					"-- got %08x, want %08x", scenario.Desc, test.Height,
+					gotDiff, test.ExpectedDiffBits)
+				continue
+			}
+		}
+	}
+}
+</source>
+
+==致谢==
+
+本提案中的 ASERT 算法在很大程度上基于以下来源的工作：
+
+* [[http://toom.im/files/da-asert.pdf|静态难度调整，绝对预定的指数上升目标（DA-ASERT）——v2]], Mark B. Lundeberg
+* [[https://arxiv.org/pdf/2006.03044.pdf|不稳定的吞吐量：当难度算法崩溃时]], Dragos I. Ilie, Sam M. Werner, Iain D. Stewart 和 William J. Knottenbelt
+* [[https://documentation.cash/protocol/forks/hf-20201115.html|BCH升级HF-20201115]]
+
+===合作者===
+
+感谢以下人员在共识代码和本提案的审核过程中提供了宝贵的反馈（按字母顺序排列）：
+
+* David Hill ([[https://github.com/dajohi|@dajohi]])
+* Jamie Holdstock ([[https://github.com/jholdstock|@jholdstock]])
+* Joe Gruffins ([[https://github.com/JoeGruffins|@JoeGruffins]])
+* Josh Rickmar ([[https://github.com/jrick|@jrick]])
+* Matheus Degiovani ([[https://github.com/matheusd|@matheusd]])
+
+==参考==
+
+===内联参考文献===
+
+<references />
+
+===附加参考资料===
+
+# [[https://raw.githubusercontent.com/BLAKE3-team/BLAKE3-specs/master/blake3.pdf|BLAKE3规格]]
+# [[https://proposals.decred.org/record/a8501bc|Politeia 提案 - 将 PoW/PoS 区块奖励分割更改为 1/89，并将 PoW 算法更改为 BLAKE3]]
+
+==版权==
+
+本文档根据 [https://creativecommons.org/publicdomain/zero/1.0 CC0-1.0: Creative Commons CC0 1.0 Universal] 获得许可。
+
+该代码根据[https://opensource.org/licenses/ISC ISC License]获得许可。
