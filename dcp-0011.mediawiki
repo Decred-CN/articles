@@ -9,15 +9,14 @@ DCP: 0011
 条件: DCP0001, DCP0005, DCP0006, DCP0010
 </pre>
 
-==Abstract==
+==概述==
 
-This specifies modifications to the Decred Proof of Work (PoW) requirements as
-follows:
+对 Decred 工作量证明 (PoW) 的修改如下:
 
-* Separate the block hash from the PoW hash
-* Switch to the <code>BLAKE3</code> hashing algorithm for PoW
-* Reset the required target difficulty for mining upon activation
-* Change to a more responsive difficulty adjustment algorithm named ASERT
+* 将区块哈希与 PoW 哈希分开
+* 切换到 <code>BLAKE3</code> 的 PoW 哈希算法
+* 激活后重置挖矿所需的目标难度
+* 更改为响应速度更快的难度调整算法 ASERT
 
 ==Motivation==
 
