@@ -1,5 +1,10 @@
+# 加密货币投资心理学：了解市场情绪
 
-While market sentiment can be a powerful force, combining it with sound research, risk management, and a long-term perspective can help avoiding its pitfalls.
+![image](https://github.com/DominicTing/articles/blob/master/img/PubPete_excited_person_floating_in_the_sky_holding_on_to_green__21fcbff3-3a04-4ddb-b54e-cacb2adf1dcc.png)
+
+_作者：Tall Americano_
+
+> 虽然市场情绪可能是一股强大的力量，但将其与健全的研究、风险管理和长期视角相结合可以帮助避免其陷阱。
 
 Cryptocurrency investing has become a global phenomenon, attracting a diverse range of participants, from seasoned traders to first-time investors. Beyond the technical aspects and financial strategies, one critical element that can significantly impact crypto investments is market sentiment. The world of cryptocurrencies is unlike any other asset class, and understanding the psychology behind it is essential for making informed decisions. In this article, we'll explore the intricacies of market sentiment in crypto investing, its effects on price movements, and how investors can navigate this emotional landscape.
 
