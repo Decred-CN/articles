@@ -4,65 +4,90 @@
 
 _作者：Tall Americano_
 
-> 虽然市场情绪可能是一股强大的力量，但将其与健全的研究、风险管理和长期视角相结合可以帮助避免其陷阱。
+> 市场情绪可能是一股强大的力量，将健全研究、风险管理和长期主义相结合可以帮助避免其中的陷阱。
 
-Cryptocurrency investing has become a global phenomenon, attracting a diverse range of participants, from seasoned traders to first-time investors. Beyond the technical aspects and financial strategies, one critical element that can significantly impact crypto investments is market sentiment. The world of cryptocurrencies is unlike any other asset class, and understanding the psychology behind it is essential for making informed decisions. In this article, we'll explore the intricacies of market sentiment in crypto investing, its effects on price movements, and how investors can navigate this emotional landscape.
+加密货币投资已成为一种全球现象，吸引了上至经验丰富的交易者，下至首次投资者的各样参与者。除了技术方面和财务策略之外，可以显着影响加密货币投资的一个关键因素是市场情绪。加密货币的世界不同于任何其他资产类别，了解其背后的心理对于做出明智的决策至关重要。在本文中，我们将探讨加密货币投资中市场情绪的复杂性、其对价格走势的影响，以及投资者如何驾驭这种情绪。
 
-The Emotional Rollercoaster of Crypto Investing
 
-Crypto markets are notorious for their extreme price volatility. This volatility can evoke a wide range of emotions in investors, from excitement during bullish rallies to anxiety and despair during bearish downturns. Understanding these emotional responses is crucial because they often drive market sentiment.
+## 加密货币投资的情绪过山车
 
-During bull markets, a sense of euphoria pervades the crypto community. Prices surge, and FOMO (Fear of Missing Out) sets in, compelling investors to join the rally out of fear of missing out on potential gains. This emotional high can lead to impulsive buying decisions, often without a thorough assessment of the underlying technology or fundamentals.
+加密货币市场因其极端的价格波动而臭名昭著。这种波动可能会引发投资者的各种情绪，从看涨反弹时的兴奋到看跌低迷时的焦虑和绝望。了解这些情绪的反应至关重要，因为它们往往会影响市场情绪。
 
-Conversely, during bear markets, fear and panic tend to dominate sentiment. The fear of losing one's investment can be paralyzing, causing many investors to sell at a loss out of sheer desperation. This cycle of fear-driven selling can exacerbate market downturns.
+在牛市期间，加密货币社区弥漫着一种兴奋感。价格飙升，FOMO（害怕错过）开始出现，迫使投资者因担心错过潜在收益而加入。这种情绪高涨可能会导致冲动的购买决定，而通常没有对基础技术或基本面进行彻底的评估。
 
-Market Sentiment and Its Impact
+相反，在熊市期间，恐惧和恐慌往往主导情绪。对失去投资的恐惧可能会让人瘫痪，导致许多投资者出于绝望而亏本出售。这种恐惧驱动的抛售循环可能会加剧市场低迷。
 
-Market sentiment is a collective reflection of the emotions and perceptions of market participants. It can significantly influence price movements in the crypto space. When sentiment is overwhelmingly positive, it can fuel buying frenzies and drive prices to unsustainable levels, creating speculative bubbles. Conversely, negative sentiment can lead to sharp price declines as panic selling ensues.
 
-Understanding the relationship between market sentiment and price movements is crucial for investors. Recognizing when sentiment is overly optimistic or excessively pessimistic can provide valuable insights for making informed investment decisions.
+## 市场情绪及其影响
 
-The Role of Social Media and News
+市场情绪是市场参与者情绪和看法的集体反映。它可以显著影响加密货币领域的价格走势。当情绪极度乐观时，可能会助长购买狂潮，并将价格推至不可持续的水平，从而产生投机泡沫。相反，随着恐慌性抛售的发生，负面情绪可能导致价格急剧下跌。
 
-The rise of social media and digital communication platforms has amplified the impact of market sentiment in the crypto space. News, opinions, and rumours spread rapidly through these channels, often magnifying the emotional responses of investors. A single tweet or news article can trigger significant price swings, leading to a phenomenon known as "crypto Twitter (Or X as it is now known)."
+了解市场情绪和价格变动之间的关系对于投资者来说至关重要。识别情绪何时过度乐观或过度悲观可以为做出明智的投资决策提供宝贵的见解。
 
-It's essential for investors to exercise caution and critical thinking when exposed to information on social media. Verify information from multiple sources and be aware of the potential for misinformation and market manipulation, which can exacerbate sentiment-driven price movements.
 
-Strategies for Navigating Market Sentiment
+## 社交媒体和新闻的作用
 
-Stay Informed: Keeping up with the latest news and developments in the crypto space is essential. Be aware of major events, partnerships, and regulatory changes that can impact sentiment.
-Diversify: Diversifying your crypto portfolio can help mitigate the impact of extreme sentiment swings in individual assets. A diversified portfolio is less susceptible to the volatility of a single cryptocurrency.
-Long-Term Perspective: Adopt a long-term perspective in crypto investing. Emotional reactions to short-term price fluctuations can lead to poor decision-making. Focus on the fundamentals and the technology behind the cryptocurrencies you invest in.
-Risk Management: Implement risk management strategies such as setting stop-loss orders to limit potential losses in times of extreme market sentiment.
-Community Engagement: Engage with the crypto community, but do so thoughtfully. Participate in discussions, seek diverse opinions, and remain open to constructive criticism. Engaging with the community can provide valuable insights into market sentiment.
-Psychological Pitfalls and How to Avoid Them
+社交媒体和数字通信平台的兴起放大了加密货币领域市场情绪的影响。新闻、观点和谣言通过这些渠道迅速传播，往往会放大投资者的情绪反应。一条推文或新闻文章可能会引发显着的价格波动。
 
-Crypto investors are not immune to psychological pitfalls, and understanding these can help make more rational decisions. One common pitfall is confirmation bias, where individuals seek out information that confirms their existing beliefs and ignore evidence to the contrary. This can lead to a distorted view of a cryptocurrency's potential.
+投资者在接触社交媒体上的信息时必须保持谨慎和批判性思维。验证来自多个来源的信息，并意识到有错误信息和市场操纵的可能性，这会加剧情绪驱动的价格波动。
 
-To counter confirmation bias, it's essential to engage with a diverse range of opinions and information sources. When assessing a cryptocurrency, consider both the positive and negative aspects objectively. Seek out constructive criticism and evaluate it alongside the project's strengths.
 
-Another psychological challenge in crypto investing is loss aversion, the tendency to feel the pain of losses more intensely than the pleasure of gains. This can lead to impulsive decisions to sell assets when they're down, potentially missing out on future recoveries. To overcome loss aversion, set clear investment goals and establish a strategy that includes risk management techniques like stop-loss orders.
+## 驾驭市场情绪的策略
 
-The Role of Hype and Fear in Crypto
+* **随时了解情况**：了解加密货币领域的最新消息和发展至关重要。注意可能影响情绪的重大事件、合作伙伴关系和监管变化。
+* **多元化**：加密货币投资组合多元化有助于减轻个别资产极端情绪波动的影响。多元化的投资组合不易受到单一加密货币波动的影响。
+* **长期视角**：在加密货币投资中采取长期视角。对短期价格波动的情绪反应可能会导致糟糕的决策。专注于您投资的加密货币背后的基础知识和技术。
+* **风险管理**：实施风险管理策略，例如设置止损单，以在市场情绪极端时限制潜在损失。
+* **社区参与**：参与加密货币社区，但要深思熟虑。参与讨论，寻求不同意见，并对建设性批评保持开放态度。与社区互动可以提供有关市场情绪的宝贵见解。
 
-Hype and fear are powerful emotions in the crypto space. Hype can lead to speculative bubbles, where prices are driven to unsustainable levels based on exaggerated expectations. Fear, on the other hand, can trigger panic selling, causing prices to plummet rapidly. Both of these extremes can be detrimental to investors.
 
-Decred: A Personal Perspective
+## 心理陷阱以及如何避免它们
 
-In the midst of this emotional turbulence, I've found Decred to be an intriguing cryptocurrency. Decred is a unique blockchain platform that places a strong emphasis on community governance and decision-making. Its hybrid consensus mechanism combines both Proof of Work (PoW) and Proof of Stake (PoS), allowing miners and stakeholders to work together to maintain and upgrade the network. What makes Decred particularly interesting from a psychological perspective is its commitment to on-chain governance.
+加密货币投资者无法避免心理陷阱，了解这些陷阱有助于做出更理性的决定。一种常见的陷阱是确认偏差，即个人寻找证实其现有判断的信息，而忽略意见相左的信息。这可能会导致对加密货币潜力的扭曲看法。
 
-Decred's governance system empowers token holders to have a say in the protocol's development and decision-making processes. This approach aligns with the principles of decentralization, giving community members a sense of ownership and control over the project's future. From a psychological standpoint, this level of involvement can be incredibly empowering and satisfying for investors.
+为了对抗确认偏差，必须听取各种意见和信息来源。在评估加密货币时，客观地考虑积极和消极的方面。寻求建设性的批评并将其与项目的优势一起评估。
 
-As an investor, I've been drawn to Decred not only for its unique governance model but also for the stability it offers amidst the crypto market's wild fluctuations. The ability to vote on important network upgrades and decisions provides a sense of influence and ownership that goes beyond merely buying and holding tokens. This active involvement can mitigate some of the emotional stress that often accompanies crypto investing.
+加密货币投资的另一个心理挑战是损失厌恶，即对损失的痛苦比对收益的喜悦更强烈的感觉。这可能会导致资产下跌时冲动地决定出售资产，从而可能错过未来的复苏。为了克服损失厌恶情绪，需要设定明确的投资目标并制定包括止损单等风险管理技术的策略。
 
-Bitcoin's Role in Shaping Crypto Market Sentiment
 
-Bitcoin, often referred to as the "digital gold" and the pioneer of cryptocurrencies, holds a unique place in the world of crypto investing and plays a significant role in understanding market sentiment. Its price movements and the sentiments surrounding it often set the tone for the broader cryptocurrency market. Therefore, examining Bitcoin in the context of the psychology of crypto investing provides valuable insights into market sentiment dynamics.
+## 炒作和恐惧在加密货币中的作用
 
-Bitcoin's price history is a testament to the emotional rollercoaster that characterizes the crypto space. When Bitcoin experiences rapid price appreciation, it tends to trigger euphoria among investors. The fear of missing out (FOMO) intensifies, and new investors flood into the market, contributing to bullish sentiment. In such times, sentiment-driven factors like social media hype and positive news stories can amplify the bullish sentiment even further.
+炒作和恐惧是加密货币领域的强烈情绪。炒作可能会导致投机泡沫，由于夸大的预期，价格被推至不可持续的水平。另一方面，恐惧可能引发恐慌性抛售，导致价格迅速暴跌。这两种极端情况都对投资者不利。
 
-Bitcoin serves as both a bellwether and a catalyst for market sentiment in the crypto space. The emotions surrounding Bitcoin can significantly impact not only its price but also the broader cryptocurrency market. Successful crypto investors must be aware of these sentiment-driven dynamics, maintain a long-term perspective, and base their decisions on a combination of market sentiment analysis and a solid understanding of the underlying technology and fundamentals. In the ever-evolving world of crypto investing, mastering the psychology of Bitcoin and its relationship to market sentiment is a critical skill that can lead to more confident and profitable investment choices.
 
-Conclusion: Mastering the Psychology of Crypto Investing
+## Decred：个人观点
 
-Understanding market sentiment is a fundamental aspect of successful crypto investing. Emotions play a significant role in price movements, and investors who can navigate the emotional rollercoaster with a clear and rational mindset are better positioned for long-term success. While market sentiment can be a powerful force, combining it with sound research, risk management, and a long-term perspective can help investors harness its potential while avoiding its pitfalls. In the ever-evolving world of cryptocurrency, mastering the psychology of crypto investing is a valuable skill that can lead to more informed and profitable decisions.
+在这种情绪动荡中，我发现 Decred 是一种有趣的加密货币。Decred 是一个独特的区块链平台，非常重视社区治理和决策。其混合共识机制结合了工作量证明（PoW）和权益证明（PoS），允许矿工和利益相关者共同维护和升级网络。从心理学角度来看，Decred 特别有趣的是它对链上治理的承诺。
+
+Decred 的治理系统使代币持有者能够在协议的开发和决策过程中拥有发言权。这种方法符合权力下放的原则，让社区成员对项目的未来有一种主人翁感和控制感。从心理学的角度来看，这种程度的参与可以给投资者带来难以置信的力量和满足感。
+
+作为一名投资者，我被 Decred 所吸引，不仅因为它独特的治理模式，还因为它在加密货币市场剧烈波动的情况下提供的稳定性。对重要网络升级和决策进行投票的能力提供了一种影响力和所有权感，而不仅仅是购买和持有代币。这种积极的参与可以减轻加密货币投资中经常伴随的一些情绪压力。
+
+
+## 比特币在塑造加密货币市场情绪方面的作用
+
+比特币通常被称为“数字黄金”和加密货币的先驱，在加密货币投资领域占有独特的地位，在理解市场情绪方面发挥着重要作用。它的价格走势和围绕它的情绪常常为更广泛的加密货币市场定下基调。因此，在加密货币投资心理学的背景下研究比特币可以为市场情绪动态提供有价值的见解。
+
+比特币的价格历史证明了加密货币领域的情绪波动。当比特币价格快速上涨时，往往会引发投资者的兴奋。对错过机会（FOMO）的恐惧加剧，新投资者涌入市场，助长看涨情绪。在这种情况下，社交媒体炒作和正面新闻报道等情绪驱动因素可能会进一步放大看涨情绪。
+
+比特币既是加密货币领域市场情绪的风向标，也是催化剂。围绕比特币的情绪不仅会严重影响其价格，还会影响更广泛的加密货币市场。成功的加密货币投资者必须意识到这些情绪驱动的动态，保持长远的眼光，并根据市场情绪分析和对底层技术和基本面的深刻理解相结合来做出决策。在不断发展的加密货币投资世界中，掌握比特币的心理及其与市场情绪的关系是一项关键技能，可以带来更自信和更有利可图的投资选择。
+
+
+## 结论：掌握加密货币投资心理学
+
+了解市场情绪是成功的加密货币投资的一个基本面。情绪在价格走势中发挥着重要作用，能够以清晰理性的心态驾驭情绪过山车的投资者更有能力获得长期成功。虽然市场情绪可能是一股强大的力量，但将其与健全的研究、风险管理和长期视角相结合可以帮助投资者发挥其潜力，同时避免陷阱。在不断发展的加密货币世界中，掌握加密货币投资心理学是一项宝贵的技能，可以带来更明智、更有利可图的决策。
+
+
+## 关于译者
+
+编译 ：[@Dominic](https://twitter.com/wanbihou)
+
+欢迎反馈至[Github](https://github.com/DominicTing)或联系作者
+
+原文链接：[原文]([https://www.cypherpunktimes.com/the-psychology-of-crypto-investing-understanding-market-sentiment/)
+
+ 
+
+
+
+
