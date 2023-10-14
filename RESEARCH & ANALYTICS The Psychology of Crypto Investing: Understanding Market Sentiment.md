@@ -84,7 +84,7 @@ Decred 的治理系统使代币持有者能够在协议的开发和决策过程�
 
 欢迎反馈至[Github](https://github.com/DominicTing)或联系作者
 
-原文链接：[原文]([https://www.cypherpunktimes.com/the-psychology-of-crypto-investing-understanding-market-sentiment/)
+原文链接：[原文](https://www.cypherpunktimes.com/the-psychology-of-crypto-investing-understanding-market-sentiment/)
 
  
 
