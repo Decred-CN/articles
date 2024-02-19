@@ -15,9 +15,11 @@
 
 本文探讨了该运动的起源、关键人物以及《密码朋克宣言》中阐述的核心原则，为理解其历史根源及其在数字权利和网络自由讨论中的意义奠定了基础。
 
-如果您想了解更多信息，下面的链接提供了密码朋克的简要历史：
+如果您想了解更多信息，下面的链接提供了密码朋克的简要历史：[密码朋克的简史](https://medium.com/thedarkside/a-brief-history-of-the-cypherpunks-31ae447a14f)
 
 ![A brief history of the cypherpunks](img/Abriefhistoryofthecypherpunks.webp)
+
+> 链接的文章粗略地概述了该组织不仅在互联网的形成中发挥的作用，而且还将继续发挥作用，而且还参与了加密货币的兴起。
 
 
 
