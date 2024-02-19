@@ -43,7 +43,7 @@
 
 如果您想了解更多有关“谁是密码朋克”的信息，请阅读以下文章：[谁是密码朋克](https://medium.com/coinmonks/who-were-the-cypherpunks-c6f081689e16)
 
-![Who Were the Cypherpunks?](img/WhoWeretheCypherpunks?.png)
+![Who Were the Cypherpunks?](img/WhoWeretheCypherpunks.png)
 
 我们密码朋克致力于构建匿名系统。我们通过密码学、匿名邮件转发系统、数字签名和电子货币来保护我们的隐私。
 
