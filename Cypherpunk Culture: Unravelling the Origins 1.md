@@ -17,7 +17,7 @@
 
 如果您想了解更多信息，下面的链接提供了密码朋克的简要历史：
 
-![A brief history of the cypherpunks](img/Abriefhistoryofthecypherpunks.jpg)
+![A brief history of the cypherpunks](img/Abriefhistoryofthecypherpunks.webp)
 
 
 
