@@ -67,7 +67,7 @@
 
 埃里克·休斯 (Eric Hughes) 于 1993 年撰写了《密码朋克宣言》，阐述了密码朋克运动的核心原则。该宣言强调隐私是一项基本权利，提倡强大的加密技术，以保护个人通信免受不必要的监视。休斯设想了一个去中心化的未来，个人可以控制自己的数字身份，促进自治并减少政府和企业滥用权力的可能性。该宣言作为哲学基础，主张使用加密工具来维护公民自由以及控制安全和自治的能力。密码朋克运动的核心理念是个人自由、隐私和密码学的力量紧密相连。
 
-埃里克·休斯 (Eric Hughes) 的密码朋克宣言：(密码朋克宣言)[https://nakamotoinstitute.org/static/docs/cypherpunk-manifesto.txt?ref=cypherpunktimes.com]
+埃里克·休斯 (Eric Hughes) 的密码朋克宣言：[密码朋克宣言](https://nakamotoinstitute.org/static/docs/cypherpunk-manifesto.txt?ref=cypherpunktimes.com)
 
 > 我们密码朋克致力于构建匿名系统。我们通过密码学、匿名邮件转发系统、数字签名和电子货币来保护我们的隐私。
 
